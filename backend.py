@@ -62,7 +62,7 @@ class DbAct:
         super(DbAct, self).__init__()
         self.__db = db
         self.__config = config
-        self.__excell_update = ExcellUpdate(db)
+        #self.__excell_update = ExcellUpdate(db)
         #self.__excell_update.update_excell()
 
     def add_user(self, user_id, first_name, last_name, nick_name):
@@ -72,4 +72,13 @@ class DbAct:
             else:
                 is_admin = False
             self.__db.db_write('INSERT INTO users (user_id, first_name, last_name, nick_name, is_admin) VALUES (?, ?, ?, ?, ?)', (user_id, first_name, last_name, nick_name, is_admin))
+
+    def user_is_existed(self, user_id):
+        data = self.__db.db_read('SELECT count(*) FROM users WHERE user_id = ?', (user_id, ))
+        if len(data) > 0:
+            if data[0][0] > 0:
+                status = True
+            else:
+                status = False
+            return status
 

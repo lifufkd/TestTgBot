@@ -29,11 +29,15 @@ def main():
 
     @bot.message_handler(commands=['tovar'])
     def tovar_msg(message):
+        command = message.text.replace('/', '')
         user_id = message.chat.id
         if db_actions.user_is_existed(user_id):
             buttons = Bot_inline_btns()
-            bot.send_message(message.chat.id, 'Картинка', reply_markup=buttons.tovar_bnts())
-            bot.send_photo(message.chat.id, 'Описание')
+            if command == 'tovar':
+                bot.send_message(message.chat.id, 'Картинка', reply_markup=buttons.tovar_bnts())
+                bot.send_photo(message.chat.id, 'Описание')
+            elif command == 'addproduct':
+
         else:
             bot.send_photo(message.chat.id, 'Введите /start для запуска бота')
 
@@ -42,18 +46,23 @@ def main():
         user_id = message.chat.id
         if db_actions.user_is_existed(user_id):
             buttons = Bot_inline_btns()
-            if message.text == 'Профиль':
-                bot.send_message(message.chat.id, f'Привет, {message.from_user.first_name}!', reply_markup=buttons.profile_btns())
-            elif message.text == 'Мои покупки':
-                bot.send_message(message.chat.id, 'Ваши покупки:\n1. Back4Blood')
-            elif message.text == 'Каталог продуктов':
-                bot.send_message(message.chat.id, 'Выберите действие', reply_markup=buttons.product_catalog_btns())
-            elif message.text == 'Поддержка':
-                bot.send_message(message.chat.id, 'Выберите действие', reply_markup=buttons.support_btns())
-            elif message.text == 'Наши контакты':
-                bot.send_message(message.chat.id, 'Наши контакты')
-            elif message.text == 'FAQ':
-                bot.send_message(message.chat.id, 'FAQ')
+            if temp_user_data.temp_data(user_id)[user_id][0] is not None:
+                status = temp_user_data.temp_data(user_id)[user_id][0]
+                if status == 0:
+                    pass
+            else:
+                if message.text == 'Профиль':
+                    bot.send_message(message.chat.id, f'Привет, {message.from_user.first_name}!', reply_markup=buttons.profile_btns())
+                elif message.text == 'Мои покупки':
+                    bot.send_message(message.chat.id, 'Ваши покупки:\n1. Back4Blood')
+                elif message.text == 'Каталог продуктов':
+                    bot.send_message(message.chat.id, 'Выберите действие', reply_markup=buttons.product_catalog_btns())
+                elif message.text == 'Поддержка':
+                    bot.send_message(message.chat.id, 'Выберите действие', reply_markup=buttons.support_btns())
+                elif message.text == 'Наши контакты':
+                    bot.send_message(message.chat.id, 'Наши контакты')
+                elif message.text == 'FAQ':
+                    bot.send_message(message.chat.id, 'FAQ')
         else:
             bot.send_photo(message.chat.id, 'Введите /start для запуска бота')
     bot.polling(none_stop=True)

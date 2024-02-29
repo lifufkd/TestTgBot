@@ -32,11 +32,23 @@ class DB:
             )
             ''')
             self.__cursor.execute('''
-            CREATE TABLE actions(
+                        CREATE TABLE products(
+                        row_id INTEGER primary key autoincrement not null,
+                        photo BLOB,
+                        price INTEGER,
+                        key TEXT,
+                        description TEXT
+                        )
+                        ''')
+            self.__cursor.execute('''
+            CREATE TABLE sales(
             row_id INTEGER primary key autoincrement not null,
             time INTEGER,
-            nick_tg INTEGER,
-            request_type INTEGER
+            name TEXT,
+            price INTEGER,
+            payment_status BOOL,  
+            nick_tg TEXT,
+            product INTEGER
             )
             ''')
             self.__db.commit()
