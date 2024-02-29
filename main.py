@@ -27,7 +27,7 @@ def main():
         bot.send_message(message.chat.id, f'Привет {message.from_user.first_name}, я KeyShop Bot, я помогу тебе купить товары', reply_markup=buttons.msg_buttons())
 
 
-    @bot.message_handler(commands=['tovar'])
+    @bot.message_handler(commands=['tovar', 'addproduct', 'importfromexcell'])
     def tovar_msg(message):
         command = message.text.replace('/', '')
         user_id = message.chat.id
@@ -36,20 +36,59 @@ def main():
             if command == 'tovar':
                 bot.send_message(message.chat.id, 'Картинка', reply_markup=buttons.tovar_bnts())
                 bot.send_photo(message.chat.id, 'Описание')
-            elif command == 'addproduct':
-
+            if db_actions.user_is_admin(user_id):
+                if command == 'addproduct':
+                    temp_user_data.temp_data(user_id)[user_id][0] = 0
+                    bot.send_message(message.chat.id, 'Отправьте фото товара')
+                elif command == 'importfromexcell':
+                    pass
         else:
             bot.send_photo(message.chat.id, 'Введите /start для запуска бота')
 
-    @bot.message_handler(content_types=['text'])
+    @bot.message_handler(content_types=['text', 'photo'])
     def text_message(message):
+        photo = message.photo
+        user_input = message.text
         user_id = message.chat.id
         if db_actions.user_is_existed(user_id):
             buttons = Bot_inline_btns()
             if temp_user_data.temp_data(user_id)[user_id][0] is not None:
                 status = temp_user_data.temp_data(user_id)[user_id][0]
                 if status == 0:
-                    pass
+                    if photo is not None:
+                        photo_id = photo[-1].file_id
+                        photo_file = bot.get_file(photo_id)
+                        photo_bytes = bot.download_file(photo_file.file_path)
+                        temp_user_data.temp_data(user_id)[user_id][1][0] = photo_bytes
+                        temp_user_data.temp_data(user_id)[user_id][0] = 1
+                        bot.send_message(message.chat.id, 'Отправьте цену товара')
+                    else:
+                        bot.send_message(message.chat.id, 'Это не фото')
+                elif status == 1:
+                    if user_input is not None:
+                        try:
+                            temp_user_data.temp_data(user_id)[user_id][1][1] = int(user_input)
+                            temp_user_data.temp_data(user_id)[user_id][0] = 2
+                            bot.send_message(message.chat.id, 'Отправьте активационный ключ')
+                        except:
+                            bot.send_message(message.chat.id, 'Сумма неверна!')
+                    else:
+                        bot.send_message(message.chat.id, 'Это не текст')
+                elif status == 2:
+                    if user_input is not None:
+                        temp_user_data.temp_data(user_id)[user_id][1][2] = user_input
+                        temp_user_data.temp_data(user_id)[user_id][0] = 3
+                        bot.send_message(message.chat.id, 'Отправьте описание товара')
+                    else:
+                        bot.send_message(message.chat.id, 'Это не текст')
+                elif status == 3:
+                    if user_input is not None:
+                        temp_user_data.temp_data(user_id)[user_id][1][3] = user_input
+                        temp_user_data.temp_data(user_id)[user_id][0] = None
+                        db_actions.add_one_product(temp_user_data.temp_data(user_id)[user_id][1])
+                        bot.send_message(message.chat.id, 'Товар успешно добавлен!')
+                    else:
+                        bot.send_message(message.chat.id, 'Это не текст')
             else:
                 if message.text == 'Профиль':
                     bot.send_message(message.chat.id, f'Привет, {message.from_user.first_name}!', reply_markup=buttons.profile_btns())
