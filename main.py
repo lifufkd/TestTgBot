@@ -7,7 +7,9 @@ import os
 import platform
 import telebot
 from threading import Lock
-from backend import TempUserData, DbAct
+
+import backend
+from backend import TempUserData, DbAct, ExcellImport
 from config_parser import ConfigParser
 from db import DB
 from frontend import Bot_inline_btns
@@ -35,11 +37,12 @@ def main():
             buttons = Bot_inline_btns()
             if command == 'tovar':
                 bot.send_message(message.chat.id, 'Картинка', reply_markup=buttons.tovar_bnts())
-                bot.send_photo(message.chat.id, 'Описание')
+                bot.send_message(message.chat.id, 'Описание')
             elif command == 'addproduct':
+                pass
 
         else:
-            bot.send_photo(message.chat.id, 'Введите /start для запуска бота')
+            bot.send_message(message.chat.id, 'Введите /start для запуска бота')
 
     @bot.message_handler(content_types=['text'])
     def text_message(message):
@@ -56,7 +59,7 @@ def main():
                 elif message.text == 'Мои покупки':
                     bot.send_message(message.chat.id, 'Ваши покупки:\n1. Back4Blood')
                 elif message.text == 'Каталог продуктов':
-                    bot.send_message(message.chat.id, 'Выберите действие', reply_markup=buttons.product_catalog_btns())
+                    bot.send_message(message.chat.id, 'Выберите действие', reply_markup=buttons.categories_btns())
                 elif message.text == 'Поддержка':
                     bot.send_message(message.chat.id, 'Выберите действие', reply_markup=buttons.support_btns())
                 elif message.text == 'Наши контакты':
@@ -64,7 +67,7 @@ def main():
                 elif message.text == 'FAQ':
                     bot.send_message(message.chat.id, 'FAQ')
         else:
-            bot.send_photo(message.chat.id, 'Введите /start для запуска бота')
+            bot.send_message(message.chat.id, 'Введите /start для запуска бота')
     bot.polling(none_stop=True)
 
 
@@ -74,6 +77,7 @@ if '__main__' == __name__:
     config = ConfigParser(f'{work_dir}/{config_name}', os_type)
     temp_user_data = TempUserData()
     db = DB(config.get_config()['db_file_name'], Lock())
+    excell = ExcellImport(db)
     db_actions = DbAct(db, config)
     bot = telebot.TeleBot(config.get_config()['tg_api'])
     main()
