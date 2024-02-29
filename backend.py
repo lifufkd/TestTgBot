@@ -17,7 +17,7 @@ class TempUserData:
 
     def temp_data(self, user_id):
         if user_id not in self.__user_data.keys():
-            self.__user_data.update({user_id: [None, None]}) # 1 - status, 2 - m
+            self.__user_data.update({user_id: [None, [None, None, None, None]]}) # 1 - status, 2 - m
         return self.__user_data
 
 
@@ -70,4 +70,16 @@ class DbAct:
             else:
                 status = False
             return status
+
+    def user_is_admin(self, user_id):
+        data = self.__db.db_read('SELECT is_admin FROM users WHERE user_id = ?', (user_id, ))
+        if len(data) > 0:
+            if data[0][0] == 1:
+                status = True
+            else:
+                status = False
+            return status
+
+    def add_one_product(self, data):
+        self.__db.db_write('INSERT INTO products (photo, price, key, description) VALUES (?, ?, ?, ?)', data)
 

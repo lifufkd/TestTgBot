@@ -27,6 +27,7 @@ class DB:
             first_name TEXT,
             last_name TEXT,
             nick_name TEXT,
+            
             is_admin BOOL,
             UNIQUE(user_id)
             )
