@@ -3,12 +3,10 @@
 #                SBR                #
 #               zzsxd               #
 #####################################
-
-import telebot
 from telebot import types
-
-
 #####################################
+
+
 class Bot_inline_btns:
     def __init__(self):
         super(Bot_inline_btns, self).__init__()

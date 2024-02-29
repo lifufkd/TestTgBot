@@ -6,7 +6,6 @@
 import os
 import platform
 import telebot
-from telebot import types
 from config_parser import ConfigParser
 from frontend import Bot_inline_btns
 

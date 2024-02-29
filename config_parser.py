@@ -6,9 +6,8 @@ import copy
 import json
 import os
 import sys
-
-
 #####################################
+
 
 class ConfigParser:
     def __init__(self, file_path, os_type):
