@@ -36,13 +36,23 @@ def main():
         elif message.text == 'Мои покупки':
             bot.send_message(message.chat.id, 'Ваши покупки:\n1. Back4Blood')
         elif message.text == 'Каталог продуктов':
-            bot.send_message(message.chat.id, 'Выберите действие', reply_markup=buttons.product_catalog_btns())
+            categoriies = bot.send_message(message.chat.id, 'Категории', reply_markup=buttons.categories_btns())
         elif message.text == 'Поддержка':
             bot.send_message(message.chat.id, 'Выберите действие', reply_markup=buttons.support_btns())
         elif message.text == 'Наши контакты':
             bot.send_message(message.chat.id, 'Наши контакты')
         elif message.text == 'FAQ':
             bot.send_message(message.chat.id, 'FAQ')
+
+
+    @bot.callback_query_handler(func=lambda call: True)
+    def callback(call):
+        buttons = Bot_inline_btns()
+        if call.data == 'category':
+            podcategoriies = bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.categoriies.id, text='Подкатегории', reply_markup=buttons.podcategories_btns())
+        elif call.data == 'podcategory':
+            bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.podcategoriies.id, text='Товары внутри подкатегории', reply_markup=buttons.tovar_btns())
+
     bot.polling(none_stop=True)
 
 
