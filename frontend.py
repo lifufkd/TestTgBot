@@ -34,13 +34,21 @@ class Bot_inline_btns:
         keyboard.add(buy, download_dist, instruction)
         return keyboard
 
-    def product_catalog_btns(self):
-        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        categories = types.KeyboardButton('Список категорий')
-        podcategories = types.KeyboardButton('Список подкатегорий')
-        tovar = types.KeyboardButton('Список товаров внутри подкатегорий')
-        keyboard.add(categories, podcategories, tovar)
-        return keyboard
+    def categories_btns(self):
+        categories = types.InlineKeyboardButton('Список категорий', callback_data='category')
+        self.__markup.add(categories)
+        return self.__markup
+
+    def podcategories_btns(self):
+        podcategories = types.InlineKeyboardButton('Список подкатегорий', callback_data='podcategory')
+        self.__markup.add(podcategories)
+        return self.__markup
+
+    def tovar_btns(self):
+        tovar = types.InlineKeyboardButton('Список товаров внутри подкатегорий', callback_data='tovary_in_podcategories')
+        self.__markup.add(tovar)
+        return self.__markup
+
 
     def profile_btns(self):
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
