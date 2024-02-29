@@ -24,9 +24,6 @@ class TempUserData:
 class ExcellImport:
     def __init__(self, db):
         super(ExcellImport, self).__init__()
-        self.__codes = {0: 'обращение в поддержку', 1: 'запрос на отзыв', 2: 'сообщение от пользователя', 3: 'сообщение от модератора'}
-        self.__column_names_db = [['Дата время (UTC)', 'Пользователь (TG)', 'Тип запроса']]
-        self.__column_names_quanity = [['Поддержка', 'Отзыв', 'Всего обращений', 'Ответ менеджера']]
         self.__db = db
         self.__sheet = None
         self.init()
@@ -36,14 +33,11 @@ class ExcellImport:
         creds = ServiceAccountCredentials.from_json_keyfile_name('creditionals.json')
         gc = gspread.authorize(creds)
         self.__sheet = gc.open("Бот для продаж")
+
     def excell(self):
         worksheet = self.__sheet.get_worksheet(1) # 1 - вторая страница для парсинга
         data = worksheet.get_all_values()
         print(data)
-
-        # gc = gspread.service_account(filename='path/to/credentials.json')
-        # worksheet = gc.open('Название таблицы').sheet1
-
 
 
 class DbAct:
@@ -51,8 +45,6 @@ class DbAct:
         super(DbAct, self).__init__()
         self.__db = db
         self.__config = config
-        #self.__excell_update = ExcellUpdate(db)
-        #self.__excell_update.update_excell()
 
     def add_user(self, user_id, first_name, last_name, nick_name):
         if not self.user_is_existed(user_id):
@@ -82,4 +74,7 @@ class DbAct:
 
     def add_one_product(self, data):
         self.__db.db_write('INSERT INTO products (photo, price, key, description) VALUES (?, ?, ?, ?)', data)
+
+    def update_db_from_excell(self):
+        pass
 

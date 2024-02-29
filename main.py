@@ -119,7 +119,7 @@ def main():
                 elif command == 'importexcell':
                     pass
 
-        bot.polling(none_stop=True)
+    bot.polling(none_stop=True)
 
 
 if '__main__' == __name__:

@@ -38,6 +38,7 @@ class DB:
                         photo BLOB,
                         price INTEGER,
                         key TEXT,
+                        category TEXT,
                         description TEXT
                         )
                         ''')
