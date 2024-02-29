@@ -63,5 +63,8 @@ class Bot_inline_btns:
         keyboard.add(our_contacts, FAQ)
         return keyboard
 
+    def admin_btns(self):
+        pass
+
 
 
