@@ -40,14 +40,34 @@ class ExcellImport:
         return data[1:]
 
     def categories_excell(self):
-        worksheet = self.__sheet.get_worksheet(2) # 1 - вторая страница для парсинга
+        worksheet = self.__sheet.get_worksheet(2) # 1 - третья страница для парсинга
         data = worksheet.get_all_values()
         return data[1:]
 
     def subcategories_excell(self):
-        worksheet = self.__sheet.get_worksheet(3) # 1 - вторая страница для парсинга
+        worksheet = self.__sheet.get_worksheet(3) # 1 - четвертая страница для парсинга
         data = worksheet.get_all_values()
         return data[1:]
+
+
+class SheetExport:
+    def __init__(self, db):
+        super(SheetExport, self).__init__()
+        self.__column_names_db = [['A1', 'B1', 'C1']]
+        self.__db = db
+        self.__sheet = None
+        self.init()
+
+    def init(self):
+        creds = ServiceAccountCredentials.from_json_keyfile_name('creditionals.json')
+        file = gspread.authorize(creds)
+        workbook = file.open("Бот для продаж")
+        self.__sheet = workbook.sheet1
+
+    def update_excell(self):
+        pass # тут инфа которую надо вставлять
+
+
 
 
 class DbAct:
