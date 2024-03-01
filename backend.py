@@ -5,6 +5,8 @@
 #####################################
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+from PIL import Image
+import io
 import time
 from datetime import datetime
 #####################################
@@ -37,6 +39,11 @@ class ExcellImport:
     def excell(self):
         worksheet = self.__sheet.get_worksheet(1) # 1 - вторая страница для парсинга
         data = worksheet.get_all_values()
+        cell = self.__sheet.cell(2, 2).value  # Пример: ячейка B2
+        img = Image.open(io.BytesIO(cell))
+        img_bytes = io.BytesIO()
+        img.save(img_bytes, format='PNG')
+        photo = img_bytes.getvalue()
         print(data)
 
 
