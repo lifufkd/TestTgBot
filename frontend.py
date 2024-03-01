@@ -34,11 +34,6 @@ class Bot_inline_btns:
         keyboard.add(buy, download_dist, instruction)
         return keyboard
 
-    def categories_btns(self):
-        categories = types.InlineKeyboardButton('Список категорий', callback_data='category')
-        self.__markup.add(categories)
-        return self.__markup
-
     def podcategories_btns(self):
         podcategories = types.InlineKeyboardButton('Список подкатегорий', callback_data='podcategory')
         self.__markup.add(podcategories)
@@ -64,7 +59,43 @@ class Bot_inline_btns:
         return keyboard
 
     def admin_btns(self):
-        pass
+        addproduct = types.InlineKeyboardButton('Добавить продукт', callback_data='addproduct')
+        importproducts = types.InlineKeyboardButton('Обновить товары из excel', callback_data='importproducts')
+        importcategories = types.InlineKeyboardButton('Обновить категории из excel', callback_data='importcategories')
+        importsubcategories = types.InlineKeyboardButton('Обновить подкатегории из excel', callback_data='importsubcategories')
+        changeproduct = types.InlineKeyboardButton('Изменить продукт', callback_data='changeproduct')
+        self.__markup.add(addproduct, importproducts, importcategories, importsubcategories, changeproduct)
+        return self.__markup
 
+    def categories_btns(self, data):
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        for i in data:
+            btn = types.InlineKeyboardButton(i[1], callback_data=f'categories{i[0]}')
+            markup.add(btn)
+        return markup
+
+    def subcategories_btns(self, data):
+        data.append(('<back>', 'назад'))
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        for i in data:
+            btn = types.InlineKeyboardButton(i[1], callback_data=f'subcategories{i[0]}')
+            markup.add(btn)
+        return markup
+
+    def buy_btns(self, id_product):
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        btn = types.InlineKeyboardButton('Купить', callback_data=f'buy{id_product}')
+        markup.add(btn)
+        return markup
+
+    def change_btns(self):
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        btn1 = types.InlineKeyboardButton('Цену', callback_data=f'сhangecart1')
+        btn2 = types.InlineKeyboardButton('Фото', callback_data=f'сhangecart2')
+        btn3 = types.InlineKeyboardButton('Ключ', callback_data=f'сhangecart3')
+        btn4 = types.InlineKeyboardButton('Подкатегорию', callback_data=f'сhangecart4')
+        btn5 = types.InlineKeyboardButton('Описание', callback_data=f'сhangecart5')
+        markup.add(btn1, btn2, btn3, btn4, btn5)
+        return markup
 
 

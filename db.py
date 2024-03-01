@@ -27,21 +27,22 @@ class DB:
             first_name TEXT,
             last_name TEXT,
             nick_name TEXT,
-            
+            sales INTEGER,
             is_admin BOOL,
             UNIQUE(user_id)
             )
             ''')
             self.__cursor.execute('''
-                        CREATE TABLE products(
-                        row_id INTEGER primary key autoincrement not null,
-                        photo BLOB,
-                        price INTEGER,
-                        key TEXT,
-                        category TEXT,
-                        description TEXT
-                        )
-                        ''')
+            CREATE TABLE products(
+            row_id INTEGER primary key autoincrement not null,
+            photo BLOB,
+            price INTEGER,
+            key TEXT,
+            category TEXT,
+            description TEXT,
+            purchased BOOL
+            )
+            ''')
             self.__cursor.execute('''
             CREATE TABLE sales(
             row_id INTEGER primary key autoincrement not null,
@@ -51,6 +52,19 @@ class DB:
             payment_status BOOL,  
             nick_tg TEXT,
             product INTEGER
+            )
+            ''')
+            self.__cursor.execute('''
+            CREATE TABLE categories(
+            id TEXT,
+            name TEXT
+            )
+            ''')
+            self.__cursor.execute('''
+            CREATE TABLE subcategories(
+            id TEXT,
+            id_categories TEXT,
+            name TEXT
             )
             ''')
             self.__db.commit()
