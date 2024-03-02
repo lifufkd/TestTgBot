@@ -140,6 +140,7 @@ def main():
                     if user_input is not None:
                         old_keys = db_actions.get_all_keys_product(temp_user_data.temp_data(user_id)[user_id][2])
                         new_keys = old_keys + f',{user_input}'
+                        new_keys = ','.join(set(new_keys.split(',')))
                         db_actions.update_product(new_keys, 'key',
                                                   temp_user_data.temp_data(user_id)[user_id][2])
                         temp_user_data.temp_data(user_id)[user_id][0] = None
@@ -276,8 +277,9 @@ def main():
                     product = db_actions.get_product_by_id(command[8:])
                     if temp_user_data.temp_data(user_id)[user_id][3] is not None:
                         bot.delete_message(user_id, temp_user_data.temp_data(user_id)[user_id][3])
+                    keys_left = len(db_actions.get_all_keys_product(command[8:]).split(','))
                     temp_user_data.temp_data(user_id)[user_id][3] = bot.send_photo(photo=product[0],
-                                   caption=f'💎ID товара: {command[8:]}\n📨Описание: {product[2]}\n💸Цена: {product[1]}',
+                                   caption=f'💎ID товара: {command[8:]}\nКлючей осталось: {keys_left}\n📨Описание: {product[2]}\n💸Цена: {product[1]}',
                                    chat_id=user_id,
                                    reply_markup=buttons.buy_btns(command[8:])).message_id
         else:
