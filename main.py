@@ -214,6 +214,21 @@ def main():
                 if command == 'addproduct':
                     temp_user_data.temp_data(user_id)[user_id][0] = 0
                     bot.send_message(call.message.chat.id, 'Отправьте фото товара🖼')
+                elif command == 'addcontact':
+                    bot.send_message(call.message.chat.id, '👤Введите новый контакт👤')
+                    temp_user_data.temp_data(user_id)[user_id][0] = 13
+                elif command == 'addfaq':
+                    bot.send_message(call.message.chat.id, '💎Введите новый FAQ💎')
+                    temp_user_data.temp_data(user_id)[user_id][0] = 14
+                elif command == 'changecontact':
+                    bot.send_message(call.message.chat.id, '👤Введите новый контакт👤')
+                    temp_user_data.temp_data(user_id)[user_id][0] = 15
+                elif command == 'changefaq':
+                    bot.send_message(call.message.chat.id, '💎Введите новый FAQ💎')
+                    temp_user_data.temp_data(user_id)[user_id][0] = 16
+                elif command == 'changestartmsg':
+                    bot.send_message(call.message.chat.id, '✉️Введите новое сообщение✉️')
+                    temp_user_data.temp_data(user_id)[user_id][0] = 17
                 elif command == 'importproducts':
                     db_actions.update_products_from_excell(sheet.products_excell())
                 elif command == 'importcategories':

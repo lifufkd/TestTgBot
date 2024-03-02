@@ -68,7 +68,10 @@ class Bot_inline_btns:
         changeproduct = types.InlineKeyboardButton('Изменить продукт', callback_data='changeproduct')
         addcontact = types.InlineKeyboardButton('Добавить контакт', callback_data='addcontact')
         addfaq = types.InlineKeyboardButton('Добавить FAQ', callback_data='addfaq')
-        self.__markup.add(addproduct, importproducts, importcategories, importsubcategories, changeproduct, addcontact, addfaq)
+        changhecontact = types.InlineKeyboardButton('Изменить контакт', callback_data='changecontact')
+        changefaq = types.InlineKeyboardButton('Изменить FAQ', callback_data='changefaq')
+        changestartmsg = types.InlineKeyboardButton('Изменить стартовое сообщение', callback_data='changestartmsg')
+        self.__markup.add(addproduct, importproducts, importcategories, importsubcategories, changeproduct, addcontact, addfaq, changhecontact, changefaq, changestartmsg)
         return self.__markup
 
     def categories_btns(self, data):

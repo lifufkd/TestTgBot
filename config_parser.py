@@ -6,6 +6,8 @@ import copy
 import json
 import os
 import sys
+
+
 #####################################
 
 
@@ -47,4 +49,14 @@ class ConfigParser:
         self.__current_config['start_msg'] = new_path
         self.create_conf(self.__current_config)
 
+    def change_contacts(self, new_path):
+        self.__current_config['contacts'] = new_path
+        self.create_conf(self.__current_config)
 
+    def change_faq(self, new_path):
+        self.__current_config['FAQ'] = new_path
+        self.create_conf(self.__current_config)
+
+    def change_start_msg(self, new_path):
+        self.__current_config['start_msg'] = new_path
+        self.create_conf(self.__current_config)
