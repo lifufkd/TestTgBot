@@ -116,7 +116,9 @@ class DbAct:
             try:
                 i[1] = int(i[1])
                 if tuple(i[0]) in check:
-                    self.__db.db_write(f'UPDATE products SET price = ?, key = ?, preview = ?, category = ?, description = ? WHERE row_id = {i[0]}', i[1:])
+                    old_key = self.__db.db_read(f'SELECT key FROM products WHERE row_id = ?', (i[0], ))[0][0]
+                    new_keys = ','.join(set(old_key.split(',') + i[2].split(',')))
+                    self.__db.db_write(f'UPDATE products SET price = ?, key = ?, preview = ?, category = ?, description = ? WHERE row_id = {i[0]}', (i[1], new_keys, i[3], i[4], i[5]))
                 else:
                     self.__db.db_write(
                         f'INSERT INTO products (photo, row_id, price, key, preview, category, description, purchased) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
