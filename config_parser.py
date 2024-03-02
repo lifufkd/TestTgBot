@@ -14,7 +14,7 @@ class ConfigParser:
         super(ConfigParser, self).__init__()
         self.__file_path = file_path
         self.__default_pathes = {'Windows': 'C:\\', 'Linux': '/'}
-        self.__default = {'tg_api': '', 'admins': [], 'db_file_name': ''}
+        self.__default = {'tg_api': '', 'admins': [], 'db_file_name': '', 'FAQ': '', 'contacts': '', 'start_msg': ''}
         self.__current_config = None
         self.load_conf()
 
@@ -35,10 +35,16 @@ class ConfigParser:
     def get_config(self):
         return self.__current_config
 
-    def update_music_folder(self, new_path):
-        if os.path.exists(new_path):
-            self.__current_config['misic_folder'] = new_path
-            self.create_conf(self.__current_config)
-            return True
+    def update_faq(self, new_path):
+        self.__current_config['FAQ'] = new_path
+        self.create_conf(self.__current_config)
+
+    def update_contacts(self, new_path):
+        self.__current_config['contacts'] = new_path
+        self.create_conf(self.__current_config)
+
+    def update_start_msg(self, new_path):
+        self.__current_config['start_msg'] = new_path
+        self.create_conf(self.__current_config)
 
 

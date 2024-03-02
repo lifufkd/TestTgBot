@@ -18,7 +18,7 @@ class TempUserData:
 
     def temp_data(self, user_id):
         if user_id not in self.__user_data.keys():
-            self.__user_data.update({user_id: [None, [None, None, None, None, None], None]}) # 1 - status, 2 - m
+            self.__user_data.update({user_id: [None, [None, None, None, None, None, None], None, None]}) # 1 - status, 2 - m
         return self.__user_data
 
 
@@ -66,7 +66,7 @@ class SheetExport:
         self.__sheet = workbook.sheet1
 
     def update_excell(self):
-        pass # тут инфа которую надо вставлять
+        worksheet = self.__sheet.get_worksheet(0)
 
 
 
@@ -104,29 +104,44 @@ class DbAct:
             return status
 
     def add_one_product(self, data):
-        self.__db.db_write(f'INSERT INTO products (photo, price, key, description, category, purchased) VALUES (?, ?, ?, ?, ?, {False})', data)
+        data = self.__db.db_read('SELECT MAX(row_id) FROM products', ())
+        if len(data) > 0:
+            new_id = int(data[0][0]) + 1
+        else:
+            new_id = 1
+        self.__db.db_write(f'INSERT INTO products (row_id, photo, price, key, description, category, preview, purchased) VALUES ({new_id}, ?, ?, ?, ?, ?, ?, {False})', data)
 
     def update_products_from_excell(self, data):
-        check = self.__db.db_read(f'SELECT price, key, category, description FROM products', ())
+        check = self.__db.db_read(f'SELECT row_id FROM products', ())
         for i in data:
             try:
                 i[1] = int(i[1])
-                if tuple(i[1:]) not in check:
-                    print(tuple(i[1:]), 'in')
-                    self.__db.db_write(f'INSERT INTO products (photo, price, key, category, description, purchased) VALUES (?, ?, ?, ?, ?, ?)', (open('no-photo.png', 'rb'), int(i[1]), i[2], i[3], i[4], False))
+                if tuple(i[0]) in check:
+                    old_key = self.__db.db_read(f'SELECT key FROM products WHERE row_id = ?', (i[0], ))[0][0]
+                    new_keys = ','.join(set(old_key.split(',') + i[2].split(',')))
+                    self.__db.db_write(f'UPDATE products SET price = ?, key = ?, preview = ?, category = ?, description = ? WHERE row_id = {i[0]}', (i[1], new_keys, i[3], i[4], i[5]))
+                else:
+                    self.__db.db_write(
+                        f'INSERT INTO products (photo, row_id, price, key, preview, category, description, purchased) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                        (open('no-photo.png', 'rb').read(), i[0], i[1], i[2], i[3], i[4], i[5], False))
             except:
                 pass
 
+
     def update_categories_from_excell(self, data):
-        check = self.__db.db_read(f'SELECT id, name FROM categories', ())
+        check = self.__db.db_read(f'SELECT id FROM categories', ())
         for i in data:
-            if tuple(i) not in check:
+            if tuple(i[0]) in check:
+                self.__db.db_write(f'UPDATE categories SET name = ? WHERE id = {i[0]}', (i[1], ))
+            else:
                 self.__db.db_write(f'INSERT INTO categories (id, name) VALUES (?, ?)', i)
 
     def update_subcategories_from_excell(self, data):
-        check = self.__db.db_read(f'SELECT id, id_categories, name FROM subcategories', ())
+        check = self.__db.db_read(f'SELECT id FROM subcategories', ())
         for i in data:
-            if tuple(i) not in check:
+            if tuple(i[0]) in check:
+                self.__db.db_write(f'UPDATE subcategories SET id_categories = ?, name = ? WHERE id = {i[0]}', (i[1], i[2]))
+            else:
                 self.__db.db_write(f'INSERT INTO subcategories (id, id_categories, name) VALUES (?, ?, ?)', i)
 
     def get_categories(self):
@@ -141,12 +156,26 @@ class DbAct:
         data = self.__db.db_read('SELECT id, name FROM subcategories', ())
         return data
 
-    def get_products_by_id(self, id_product):
-        data = self.__db.db_read('SELECT row_id, photo, price, key, description FROM products WHERE category = ? AND purchased = 0', (id_product, ))
+    def get_product_by_id(self, id_product):
+        data = self.__db.db_read('SELECT photo, price, description FROM products WHERE row_id = ?', (id_product, ))
+        return data[0]
+
+    def get_products_preview(self, id_product):
+        data = self.__db.db_read(
+            'SELECT row_id, preview, price FROM products WHERE category = ? AND purchased = 0',
+            (id_product,))
         return data
 
     def update_product(self, data, field, product_id):
         self.__db.db_write(f'UPDATE products SET {field} = ? WHERE row_id = ?', (data, product_id))
+
+    def get_all_keys_product(self, product_id):
+        data = self.__db.db_read(
+            'SELECT key FROM products WHERE row_id = ?',
+            (product_id, ))
+        if len(data) > 0:
+            return data[0][0]
+
 
     def check_product_id_exist(self, product_id):
         data = self.__db.db_read('SELECT count(*) FROM products WHERE row_id = ?', (product_id,))
