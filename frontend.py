@@ -66,12 +66,10 @@ class Bot_inline_btns:
         importcategories = types.InlineKeyboardButton('Обновить категории из excel', callback_data='importcategories')
         importsubcategories = types.InlineKeyboardButton('Обновить подкатегории из excel', callback_data='importsubcategories')
         changeproduct = types.InlineKeyboardButton('Изменить продукт', callback_data='changeproduct')
-        addcontact = types.InlineKeyboardButton('Добавить контакт', callback_data='addcontact')
-        addfaq = types.InlineKeyboardButton('Добавить FAQ', callback_data='addfaq')
         changhecontact = types.InlineKeyboardButton('Изменить контакт', callback_data='changecontact')
         changefaq = types.InlineKeyboardButton('Изменить FAQ', callback_data='changefaq')
         changestartmsg = types.InlineKeyboardButton('Изменить стартовое сообщение', callback_data='changestartmsg')
-        self.__markup.add(addproduct, importproducts, importcategories, importsubcategories, changeproduct, addcontact, addfaq, changhecontact, changefaq, changestartmsg)
+        self.__markup.add(addproduct, importproducts, importcategories, importsubcategories, changeproduct, changhecontact, changefaq, changestartmsg)
         return self.__markup
 
     def categories_btns(self, data):
