@@ -62,6 +62,7 @@ class SheetExport:
         creds = ServiceAccountCredentials.from_json_keyfile_name('creditionals.json')
         file = gspread.authorize(creds)
         workbook = file.open("Бот для продаж")
+        worksheet = self.__sheet.get_worksheet(0) # первая страница sheet
         self.__sheet = workbook.sheet1
 
     def update_excell(self):

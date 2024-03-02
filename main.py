@@ -229,6 +229,12 @@ def main():
                     categories = db_actions.get_categories()
                     bot.edit_message_text('🪪Выберите категорию🪪', user_id, message_id,
                                      reply_markup=buttons.categories_btns(categories))
+                elif command == 'addcontact':
+                    bot.send_message(call.message.chat.id, '👤Введите новый контакт👤')
+                    temp_user_data.temp_data(user_id)[user_id][0] = 13
+                elif command == 'addfaq':
+                    bot.send_message(call.message.chat.id, 'ℹ️Введите новый FAQℹ️')
+                    temp_user_data.temp_data(user_id)[user_id][0] = 14
                 else:
                     products = db_actions.get_products_by_id(command[13:])
                     for i in products:
