@@ -70,6 +70,7 @@ class Bot_inline_btns:
         return self.__markup
 
     def categories_btns(self, data):
+        data.append(('<main>', 'В главное меню'))
         markup = types.InlineKeyboardMarkup(row_width=1)
         for i in data:
             btn = types.InlineKeyboardButton(i[1], callback_data=f'categories{i[0]}')
@@ -78,9 +79,22 @@ class Bot_inline_btns:
 
     def subcategories_btns(self, data):
         data.append(('<back>', 'назад'))
+        data.append(('<main>', 'В главное меню'))
         markup = types.InlineKeyboardMarkup(row_width=1)
         for i in data:
             btn = types.InlineKeyboardButton(i[1], callback_data=f'subcategories{i[0]}')
+            markup.add(btn)
+        return markup
+
+    def products_btns(self, data):
+        data.append(('<back>', 'назад'))
+        data.append(('<main>', 'В главное меню'))
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        for i in data:
+            if i[0] not in ['<back>', '<main>']:
+                btn = types.InlineKeyboardButton(f'{i[1]} * {i[2]}', callback_data=f'products{i[0]}')
+            else:
+                btn = types.InlineKeyboardButton(i[1], callback_data=f'products{i[0]}')
             markup.add(btn)
         return markup
 
@@ -97,7 +111,8 @@ class Bot_inline_btns:
         btn3 = types.InlineKeyboardButton('Ключ', callback_data=f'сhangecart3')
         btn4 = types.InlineKeyboardButton('Подкатегорию', callback_data=f'сhangecart4')
         btn5 = types.InlineKeyboardButton('Описание', callback_data=f'сhangecart5')
-        markup.add(btn1, btn2, btn3, btn4, btn5)
+        btn6 = types.InlineKeyboardButton('Превью', callback_data=f'сhangecart6')
+        markup.add(btn1, btn2, btn3, btn4, btn5, btn6)
         return markup
 
 

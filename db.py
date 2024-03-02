@@ -34,11 +34,12 @@ class DB:
             ''')
             self.__cursor.execute('''
             CREATE TABLE products(
-            row_id INTEGER primary key autoincrement not null,
+            row_id TEXT,
             photo BLOB,
             price INTEGER,
             key TEXT,
             category TEXT,
+            preview TEXT,
             description TEXT,
             purchased BOOL
             )

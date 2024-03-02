@@ -6,6 +6,7 @@
 import os
 import platform
 import telebot
+from telebot import types
 from threading import Lock
 from backend import TempUserData, DbAct, ExcellImport
 from config_parser import ConfigParser
@@ -98,9 +99,8 @@ def main():
                 elif status == 4:
                     if user_input is not None:
                         temp_user_data.temp_data(user_id)[user_id][1][4] = user_input
-                        temp_user_data.temp_data(user_id)[user_id][0] = None
-                        db_actions.add_one_product(temp_user_data.temp_data(user_id)[user_id][1])
-                        bot.send_message(message.chat.id, '✅Товар успешно добавлен✅')
+                        temp_user_data.temp_data(user_id)[user_id][0] = 12
+                        bot.send_message(message.chat.id, '✅Отправьте превью✅')
                     else:
                         bot.send_message(message.chat.id, '❌Это не текст❌')
                 elif status == 5:
@@ -108,7 +108,7 @@ def main():
                         if db_actions.check_product_id_exist(user_input):
                             temp_user_data.temp_data(user_id)[user_id][2] = user_input
                             temp_user_data.temp_data(user_id)[user_id][0] = None
-                            bot.send_message(message.chat.id, 'Что вы хотите изменить✏️',
+                            bot.send_message(message.chat.id, 'Что вы хотите изменить/добавить✏️',
                                              reply_markup=buttons.change_btns())
                         else:
                             bot.send_message(message.chat.id, '❌ID продукта не существует❌')
@@ -138,7 +138,9 @@ def main():
                         bot.send_message(user_id, '❌Это не фото❌')
                 elif status == 8:
                     if user_input is not None:
-                        db_actions.update_product(user_input, 'key',
+                        old_keys = db_actions.get_all_keys_product(temp_user_data.temp_data(user_id)[user_id][2])
+                        new_keys = old_keys + f',{user_input}'
+                        db_actions.update_product(new_keys, 'key',
                                                   temp_user_data.temp_data(user_id)[user_id][2])
                         temp_user_data.temp_data(user_id)[user_id][0] = None
                         bot.send_message(user_id, '✅Операция завершена успешно✅')
@@ -160,6 +162,22 @@ def main():
                         bot.send_message(user_id, '✅Операция завершена успешно✅')
                     else:
                         bot.send_message(user_id, '❌Это не текст❌')
+                elif status == 11:
+                    if user_input is not None:
+                        db_actions.update_product(user_input, 'preview',
+                                                  temp_user_data.temp_data(user_id)[user_id][2])
+                        temp_user_data.temp_data(user_id)[user_id][0] = None
+                        bot.send_message(user_id, '✅Операция завершена успешно✅')
+                    else:
+                        bot.send_message(user_id, '❌Это не текст❌')
+                elif status == 12:
+                    if user_input is not None:
+                        temp_user_data.temp_data(user_id)[user_id][1][5] = user_input
+                        temp_user_data.temp_data(user_id)[user_id][0] = None
+                        db_actions.add_one_product(temp_user_data.temp_data(user_id)[user_id][1])
+                        bot.send_message(message.chat.id, '✅Товар успешно добавлен✅')
+                    else:
+                        bot.send_message(message.chat.id, '❌Это не текст❌')
             else:
                 if message.text == 'Профиль👤':
                     bot.send_message(message.chat.id, f'Привет, {message.from_user.first_name} {message.from_user.last_name}!',
@@ -214,25 +232,54 @@ def main():
                         bot.send_message(call.message.chat.id, '🖼Введите новую обложку🖼')
                     elif command[10:] == '3':
                         temp_user_data.temp_data(user_id)[user_id][0] = 8
-                        bot.send_message(call.message.chat.id, '🔑Введите новую ключ🔑')
+                        bot.send_message(call.message.chat.id, '🔑Введите новый ключ🔑')
                     elif command[10:] == '4':
                         temp_user_data.temp_data(user_id)[user_id][0] = 9
                         bot.send_message(call.message.chat.id, f'✉️Введите новую подкатегорию для товара✉️\nДоступные варианты:\n{get_subcot()}')
                     elif command[10:] == '5':
                         temp_user_data.temp_data(user_id)[user_id][0] = 10
                         bot.send_message(call.message.chat.id, '🪪Введите новое описание🪪')
+                    elif command[10:] == '6':
+                        temp_user_data.temp_data(user_id)[user_id][0] = 11
+                        bot.send_message(call.message.chat.id, '🪪Введите новое превью🪪')
             if command[:10] == 'categories':
-                subcategories = db_actions.get_sub_by_id_categories(command[10:])
-                bot.edit_message_text('🪪Выберите подкатегорию🪪', user_id, message_id, reply_markup=buttons.subcategories_btns(subcategories))
+                if command[10:] == '<main>':
+                    bot.delete_message(user_id, message_id)
+                else:
+                    subcategories = db_actions.get_sub_by_id_categories(command[10:])
+                    bot.edit_message_text('🪪Выберите подкатегорию🪪', user_id, message_id, reply_markup=buttons.subcategories_btns(subcategories))
             elif command[:13] == 'subcategories':
                 if command[13:] == '<back>':
                     categories = db_actions.get_categories()
                     bot.edit_message_text('🪪Выберите категорию🪪', user_id, message_id,
                                      reply_markup=buttons.categories_btns(categories))
+                elif command[13:] == '<main>':
+                    bot.delete_message(user_id, message_id)
                 else:
-                    products = db_actions.get_products_by_id(command[13:])
-                    for i in products:
-                        bot.send_photo(user_id, photo=i[1], caption=f'💎ID товара: {i[0]}\n🔑Ключ: {i[3]}\n📨Описание: {i[4]}\n💸Цена: {i[2]}', reply_markup=buttons.buy_btns(i[0]))
+                    products = db_actions.get_products_preview(command[13:])
+                    bot.edit_message_text('🪪Выберите товар🪪', user_id, message_id,
+                                          reply_markup=buttons.products_btns(products))
+            elif command[:8] == 'products':
+                if command[8:] == '<back>':
+                    if temp_user_data.temp_data(user_id)[user_id][3] is not None:
+                        bot.delete_message(user_id, temp_user_data.temp_data(user_id)[user_id][3])
+                        temp_user_data.temp_data(user_id)[user_id][3] = None
+                    subcategories = db_actions.get_subcategories()
+                    bot.edit_message_text('🪪Выберите подкатегорию🪪', user_id, message_id,
+                                     reply_markup=buttons.subcategories_btns(subcategories))
+                elif command[8:] == '<main>':
+                    if temp_user_data.temp_data(user_id)[user_id][3] is not None:
+                        bot.delete_message(user_id, temp_user_data.temp_data(user_id)[user_id][3])
+                        temp_user_data.temp_data(user_id)[user_id][3] = None
+                    bot.delete_message(user_id, message_id)
+                else:
+                    product = db_actions.get_product_by_id(command[8:])
+                    if temp_user_data.temp_data(user_id)[user_id][3] is not None:
+                        bot.delete_message(user_id, temp_user_data.temp_data(user_id)[user_id][3])
+                    temp_user_data.temp_data(user_id)[user_id][3] = bot.send_photo(photo=product[0],
+                                   caption=f'💎ID товара: {command[8:]}\n📨Описание: {product[2]}\n💸Цена: {product[1]}',
+                                   chat_id=user_id,
+                                   reply_markup=buttons.buy_btns(command[8:])).message_id
         else:
             bot.send_message(user_id, 'Введите /start для запуска бота')
 
