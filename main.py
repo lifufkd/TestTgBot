@@ -15,6 +15,8 @@ from frontend import Bot_inline_btns
 
 ####################################################################
 config_name = 'secrets.json'
+
+
 ####################################################################
 
 
@@ -25,6 +27,7 @@ def get_subcot():
         s += f'{i[0]} - {i[1]}\n'
     return s
 
+
 def main():
     @bot.message_handler(commands=['start'])
     def start_message(message):
@@ -34,8 +37,7 @@ def main():
         buttons = Bot_inline_btns()
         bot.send_message(message.chat.id,
                          f'Привет {message.from_user.first_name}👋\n'
-                         f'Я KeyShop Bot🤖',
-                         reply_markup=buttons.msg_buttons())
+                         f'{config.get_config()["start_msg"]}', reply_markup=buttons.msg_buttons())
 
     @bot.message_handler(commands=['tovar', 'admin'])
     def tovar_msg(message):
@@ -93,7 +95,8 @@ def main():
                     if user_input is not None:
                         temp_user_data.temp_data(user_id)[user_id][1][3] = user_input
                         temp_user_data.temp_data(user_id)[user_id][0] = 4
-                        bot.send_message(message.chat.id, f'Отправьте ID подкатегории\nДоступные варианты:\n{get_subcot()}')
+                        bot.send_message(message.chat.id,
+                                         f'Отправьте ID подкатегории\nДоступные варианты:\n{get_subcot()}')
                     else:
                         bot.send_message(message.chat.id, '❌Это не текст❌')
                 elif status == 4:
@@ -140,7 +143,6 @@ def main():
                     if user_input is not None:
                         old_keys = db_actions.get_all_keys_product(temp_user_data.temp_data(user_id)[user_id][2])
                         new_keys = old_keys + f',{user_input}'
-                        new_keys = ','.join(set(new_keys.split(',')))
                         db_actions.update_product(new_keys, 'key',
                                                   temp_user_data.temp_data(user_id)[user_id][2])
                         temp_user_data.temp_data(user_id)[user_id][0] = None
@@ -179,26 +181,49 @@ def main():
                         bot.send_message(message.chat.id, '✅Товар успешно добавлен✅')
                     else:
                         bot.send_message(message.chat.id, '❌Это не текст❌')
+                elif status == 13:
+                    if user_input is not None:
+                        config.change_contacts(user_input)
+                        temp_user_data.temp_data(user_id)[user_id][0] = None
+                        bot.send_message(message.chat.id, '✅Изменения успешно сохранены✅')
+                    else:
+                        bot.send_message(message.chat.id, '❌Это не текст❌')
+                elif status == 14:
+                    if user_input is not None:
+                        config.change_faq(user_input)
+                        temp_user_data.temp_data(user_id)[user_id][0] = None
+                        bot.send_message(message.chat.id, '✅Изменения успешно сохранены✅')
+                    else:
+                        bot.send_message(message.chat.id, '❌Это не текст❌')
+                elif status == 15:
+                    if user_input is not None:
+                        config.change_start_msg(user_input)
+                        temp_user_data.temp_data(user_id)[user_id][0] = None
+                        bot.send_message(message.chat.id, '✅Изменения успешно сохранены✅')
+                    else:
+                        bot.send_message(message.chat.id, '❌Это не текст❌')
             else:
                 if message.text == 'Профиль👤':
-                    bot.send_message(message.chat.id, f'Привет, {message.from_user.first_name} {message.from_user.last_name}!',
+                    bot.send_message(message.chat.id,
+                                     f'Привет, {message.from_user.first_name} {message.from_user.last_name}!',
                                      reply_markup=buttons.profile_btns())
                 elif message.text == 'Мои покупки🛒':
                     bot.send_message(message.chat.id, 'Ваши покупки:\n1. Back4Blood')
                 elif message.text == 'Назад🔙':
                     bot.send_message(message.chat.id,
                                      f'Привет {message.from_user.first_name}👋\n'
-                                     f'Я KeyShop Bot🤖',
+                                     f'{config.get_config()["start_msg"]}',
                                      reply_markup=buttons.msg_buttons())
                 elif message.text == 'Каталог продуктов🗂':
                     categories = db_actions.get_categories()
-                    bot.send_message(message.chat.id, 'Выберите категорию✅', reply_markup=buttons.categories_btns(categories))
+                    bot.send_message(message.chat.id, 'Выберите категорию✅',
+                                     reply_markup=buttons.categories_btns(categories))
                 elif message.text == 'Поддержка👨‍💻':
                     bot.send_message(message.chat.id, 'Выберите действие✅', reply_markup=buttons.support_btns())
                 elif message.text == 'Наши контакты👥':
-                    bot.send_message(message.chat.id, 'Наши контакты')
+                    bot.send_message(message.chat.id, f'Наши контакты:\n{config.get_config()["contacts"]}')
                 elif message.text == 'FAQℹ️':
-                    bot.send_message(message.chat.id, 'FAQ')
+                    bot.send_message(message.chat.id, f'FAQ:\n{config.get_config()["FAQ"]}')
         else:
             bot.send_message(message.chat.id, 'Введите /start для запуска бота')
 
@@ -236,24 +261,35 @@ def main():
                         bot.send_message(call.message.chat.id, '🔑Введите новый ключ🔑')
                     elif command[10:] == '4':
                         temp_user_data.temp_data(user_id)[user_id][0] = 9
-                        bot.send_message(call.message.chat.id, f'✉️Введите новую подкатегорию для товара✉️\nДоступные варианты:\n{get_subcot()}')
+                        bot.send_message(call.message.chat.id,
+                                         f'✉️Введите новую подкатегорию для товара✉️\nДоступные варианты:\n{get_subcot()}')
                     elif command[10:] == '5':
                         temp_user_data.temp_data(user_id)[user_id][0] = 10
                         bot.send_message(call.message.chat.id, '🪪Введите новое описание🪪')
                     elif command[10:] == '6':
                         temp_user_data.temp_data(user_id)[user_id][0] = 11
                         bot.send_message(call.message.chat.id, '🪪Введите новое превью🪪')
+                elif command == 'changecontact':
+                    bot.send_message(call.message.chat.id, '👤Введите новый контакт👤')
+                    temp_user_data.temp_data(user_id)[user_id][0] = 13
+                elif command == 'changefaq':
+                    bot.send_message(call.message.chat.id, '💎Введите новый FAQ💎')
+                    temp_user_data.temp_data(user_id)[user_id][0] = 14
+                elif command == 'changestartmsg':
+                    bot.send_message(call.message.chat.id, '✉️Введите новое сообщение✉️')
+                    temp_user_data.temp_data(user_id)[user_id][0] = 15
             if command[:10] == 'categories':
                 if command[10:] == '<main>':
                     bot.delete_message(user_id, message_id)
                 else:
                     subcategories = db_actions.get_sub_by_id_categories(command[10:])
-                    bot.edit_message_text('🪪Выберите подкатегорию🪪', user_id, message_id, reply_markup=buttons.subcategories_btns(subcategories))
+                    bot.edit_message_text('🪪Выберите подкатегорию🪪', user_id, message_id,
+                                          reply_markup=buttons.subcategories_btns(subcategories))
             elif command[:13] == 'subcategories':
                 if command[13:] == '<back>':
                     categories = db_actions.get_categories()
                     bot.edit_message_text('🪪Выберите категорию🪪', user_id, message_id,
-                                     reply_markup=buttons.categories_btns(categories))
+                                          reply_markup=buttons.categories_btns(categories))
                 elif command[13:] == '<main>':
                     bot.delete_message(user_id, message_id)
                 else:
@@ -267,7 +303,7 @@ def main():
                         temp_user_data.temp_data(user_id)[user_id][3] = None
                     subcategories = db_actions.get_subcategories()
                     bot.edit_message_text('🪪Выберите подкатегорию🪪', user_id, message_id,
-                                     reply_markup=buttons.subcategories_btns(subcategories))
+                                          reply_markup=buttons.subcategories_btns(subcategories))
                 elif command[8:] == '<main>':
                     if temp_user_data.temp_data(user_id)[user_id][3] is not None:
                         bot.delete_message(user_id, temp_user_data.temp_data(user_id)[user_id][3])
@@ -277,11 +313,11 @@ def main():
                     product = db_actions.get_product_by_id(command[8:])
                     if temp_user_data.temp_data(user_id)[user_id][3] is not None:
                         bot.delete_message(user_id, temp_user_data.temp_data(user_id)[user_id][3])
-                    keys_left = len(db_actions.get_all_keys_product(command[8:]).split(','))
                     temp_user_data.temp_data(user_id)[user_id][3] = bot.send_photo(photo=product[0],
-                                   caption=f'💎ID товара: {command[8:]}\nКлючей осталось: {keys_left}\n📨Описание: {product[2]}\n💸Цена: {product[1]}',
-                                   chat_id=user_id,
-                                   reply_markup=buttons.buy_btns(command[8:])).message_id
+                                                                                   caption=f'💎ID товара: {command[8:]}\n📨Описание: {product[2]}\n💸Цена: {product[1]}',
+                                                                                   chat_id=user_id,
+                                                                                   reply_markup=buttons.buy_btns(
+                                                                                       command[8:])).message_id
         else:
             bot.send_message(user_id, 'Введите /start для запуска бота')
 
