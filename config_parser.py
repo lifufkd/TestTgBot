@@ -35,10 +35,16 @@ class ConfigParser:
     def get_config(self):
         return self.__current_config
 
-    def update_music_folder(self, new_path):
-        if os.path.exists(new_path):
-            self.__current_config['misic_folder'] = new_path
-            self.create_conf(self.__current_config)
-            return True
+    def update_faq(self, new_path):
+        self.__current_config['FAQ'] = new_path
+        self.create_conf(self.__current_config)
+
+    def update_contacts(self, new_path):
+        self.__current_config['contacts'] = new_path
+        self.create_conf(self.__current_config)
+
+    def update_start_msg(self, new_path):
+        self.__current_config['start_msg'] = new_path
+        self.create_conf(self.__current_config)
 
 
