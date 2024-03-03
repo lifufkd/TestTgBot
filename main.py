@@ -38,6 +38,7 @@ def main():
         bot.send_message(message.chat.id,
                          f'Привет {message.from_user.first_name}👋\n'
                          f'{config.get_config()["start_msg"]}', reply_markup=buttons.msg_buttons())
+        #bot.send_invoice(message.chat.id, title='название', description='описание', invoice_payload='доп.данные', provider_token=payments, currency='RUB', prices=payments) # prices = детали цены(например цена продукта, налог, скидка и т.д.)
 
     @bot.message_handler(commands=['tovar', 'admin'])
     def tovar_msg(message):
@@ -228,6 +229,10 @@ def main():
         else:
             bot.send_message(message.chat.id, 'Введите /start для запуска бота')
 
+    @bot.message_handler(content_types=['successful_payment'])
+    def got_payment(message):
+        bot.send_message(message.chat.id, 'Ваш заказ был успешным❤')
+
     @bot.callback_query_handler(func=lambda call: True)
     def callback(call):
         command = call.data
@@ -323,6 +328,12 @@ def main():
         else:
             bot.send_message(user_id, 'Введите /start для запуска бота')
 
+    @bot.pre_checkout_query_handler(func=lambda query: True)
+    def checkout(pre_checkout_query):
+        bot.answer_pre_checkout_query(pre_checkout_query.id, ok=True,
+                                      error_message="Оплата не прошла - попробуйте, пожалуйста, еще раз,"
+                                                    "или свяжитесь с администратором бота.")
+
     bot.polling(none_stop=True)
 
 
@@ -335,4 +346,5 @@ if '__main__' == __name__:
     sheet = ExcellImport(db)
     db_actions = DbAct(db, config)
     bot = telebot.TeleBot(config.get_config()['tg_api'])
+    payments = config.get_config()['payments']
     main()
