@@ -39,18 +39,15 @@ def main():
                          f'Привет {message.from_user.first_name}👋\n'
                          f'{config.get_config()["start_msg"]}', reply_markup=buttons.msg_buttons())
 
-    @bot.message_handler(commands=['tovar', 'admin'])
+    @bot.message_handler(commands=['admin'])
     def tovar_msg(message):
         command = message.text.replace('/', '')
         user_id = message.chat.id
         if db_actions.user_is_existed(user_id):
             buttons = Bot_inline_btns()
-            if command == 'tovar':
-                bot.send_message(message.chat.id, 'Картинка', reply_markup=buttons.tovar_bnts())
-                bot.send_message(message.chat.id, 'Описание')
             if db_actions.user_is_admin(user_id):
                 if command == 'admin':
-                    bot.send_message(message.chat.id, f'Здравствуйте, {message.from_user.first_name}!',
+                    bot.send_message(message.chat.id, f'Здравствуйте, {message.from_user.first_name}!\nТекущий шаг скидки {config.get_config()["step_sale"]}, процент за шаг {config.get_config()["percent_sale"]}',
                                      reply_markup=buttons.admin_btns())
         else:
             bot.send_message(message.chat.id, 'Введите /start для запуска бота')
@@ -203,6 +200,20 @@ def main():
                         bot.send_message(message.chat.id, '✅Изменения успешно сохранены✅')
                     else:
                         bot.send_message(message.chat.id, '❌Это не текст❌')
+                elif status == 16:
+                    try:
+                        config.change_step(int(user_input))
+                        temp_user_data.temp_data(user_id)[user_id][0] = 17
+                        bot.send_message(message.chat.id, 'Введите процент скидки')
+                    except:
+                        bot.send_message(message.chat.id, '❌Это не число❌')
+                elif status == 17:
+                    try:
+                        config.change_percent(int(user_input))
+                        temp_user_data.temp_data(user_id)[user_id][0] = None
+                        bot.send_message(message.chat.id, '✅Изменения успешно сохранены✅')
+                    except:
+                        bot.send_message(message.chat.id, '❌Это не число❌')
             else:
                 if message.text == 'Профиль👤':
                     bot.send_message(message.chat.id,
@@ -277,8 +288,11 @@ def main():
                     bot.send_message(call.message.chat.id, '💎Введите новый FAQ💎')
                     temp_user_data.temp_data(user_id)[user_id][0] = 14
                 elif command == 'changestartmsg':
-                    bot.send_message(call.message.chat.id, '✉️Введите новое сообщение✉️')
+                    bot.send_message(call.message.chat.id, '✉️Введите новое стартовое сообщение✉️')
                     temp_user_data.temp_data(user_id)[user_id][0] = 15
+                elif command == 'changesale':
+                    temp_user_data.temp_data(user_id)[user_id][0] = 16
+                    bot.send_message(call.message.chat.id, '✉️Введите шаг скидки✉️')
             if command[:10] == 'categories':
                 if command[10:] == '<main>':
                     bot.delete_message(user_id, message_id)
