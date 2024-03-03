@@ -18,7 +18,7 @@ class TempUserData:
 
     def temp_data(self, user_id):
         if user_id not in self.__user_data.keys():
-            self.__user_data.update({user_id: [None, [None, None, None, None, None, None], None, None]}) # 1 - status, 2 - m
+            self.__user_data.update({user_id: [None, [None, None, None, None, None, None], None, None, None]}) # 1 - status, 2 - m
         return self.__user_data
 
 
@@ -103,13 +103,20 @@ class DbAct:
                 status = False
             return status
 
+    def get_sale_by_id(self, sale_id):
+        s = ''
+        data = self.__db.db_read(f'SELECT time, key, price FROM sales WHERE product = ?', (sale_id, ))
+        for i in data:
+            s += f"Время покупки: {datetime.utcfromtimestamp(i[0]).strftime('%Y-%m-%d %H:%M')}\nКлюч: {i[1]}\nСумма покупки: {i[2]} ₽\n\n"
+        return s
+
     def add_one_product(self, data):
         data = self.__db.db_read('SELECT MAX(row_id) FROM products', ())
         if len(data) > 0:
             new_id = int(data[0][0]) + 1
         else:
             new_id = 1
-        self.__db.db_write(f'INSERT INTO products (row_id, photo, price, key, description, category, preview, purchased) VALUES ({new_id}, ?, ?, ?, ?, ?, ?, {False})', data)
+        self.__db.db_write(f'INSERT INTO products (row_id, photo, price, key, description, category, preview) VALUES ({new_id}, ?, ?, ?, ?, ?, ?)', data)
 
     def update_products_from_excell(self, data):
         check = self.__db.db_read(f'SELECT row_id FROM products', ())
@@ -122,8 +129,8 @@ class DbAct:
                     self.__db.db_write(f'UPDATE products SET price = ?, key = ?, preview = ?, category = ?, description = ? WHERE row_id = {i[0]}', (i[1], new_keys, i[3], i[4], i[5]))
                 else:
                     self.__db.db_write(
-                        f'INSERT INTO products (photo, row_id, price, key, preview, category, description, purchased) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-                        (open('no-photo.png', 'rb').read(), i[0], i[1], i[2], i[3], i[4], i[5], False))
+                        f'INSERT INTO products (photo, row_id, price, key, preview, category, description) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                        (open('no-photo.png', 'rb').read(), i[0], i[1], i[2], i[3], i[4], i[5]))
             except:
                 pass
 
@@ -135,6 +142,10 @@ class DbAct:
                 self.__db.db_write(f'UPDATE categories SET name = ? WHERE id = {i[0]}', (i[1], ))
             else:
                 self.__db.db_write(f'INSERT INTO categories (id, name) VALUES (?, ?)', i)
+
+    def get_preview_from_sales(self, user_id):
+        products = self.__db.db_read('SELECT product, name FROM sales WHERE user_id = ? AND payment_status = ?', (user_id, True))
+        return list(set(products))
 
     def update_subcategories_from_excell(self, data):
         check = self.__db.db_read(f'SELECT id FROM subcategories', ())
@@ -162,7 +173,7 @@ class DbAct:
 
     def get_products_preview(self, id_product):
         data = self.__db.db_read(
-            'SELECT row_id, preview, price FROM products WHERE category = ? AND purchased = 0',
+            'SELECT row_id, preview, price FROM products WHERE category = ?',
             (id_product,))
         return data
 

@@ -40,8 +40,7 @@ class DB:
             key TEXT,
             category TEXT,
             preview TEXT,
-            description TEXT,
-            purchased BOOL
+            description TEXT
             )
             ''')
             self.__cursor.execute('''
@@ -52,6 +51,8 @@ class DB:
             price INTEGER,
             payment_status BOOL,  
             nick_tg TEXT,
+            user_id INTEGER,
+            key TEXT,
             product INTEGER
             )
             ''')

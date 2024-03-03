@@ -27,6 +27,9 @@ def get_subcot():
         s += f'{i[0]} - {i[1]}\n'
     return s
 
+def start_menu(message, buttons):
+    bot.send_sticker(message.chat.id, 'CAACAgIAAxkBAAED4RZl5OeQu_YY_4FY1bfDeW-bfZobdQACXEYAAshAgEmc8EyBI3PWVDQE', reply_markup=buttons.msg_buttons())
+
 
 def main():
     @bot.message_handler(commands=['start'])
@@ -37,8 +40,9 @@ def main():
         buttons = Bot_inline_btns()
         bot.send_message(message.chat.id,
                          f'Привет {message.from_user.first_name}👋\n'
-                         f'{config.get_config()["start_msg"]}', reply_markup=buttons.msg_buttons())
-        #bot.send_invoice(message.chat.id, title='название', description='описание', invoice_payload='доп.данные', provider_token=config.get_config()["payment_api"], currency='RUB', prices=payments) # prices = детали цены(например цена продукта, налог, скидка и т.д.)
+                         f'{config.get_config()["start_msg"]}',
+                         reply_markup=buttons.msg_buttons())
+        #bot.send_invoice(message.chat.id, title='название', description='описание', invoice_payload='доп.данные', provider_token=payments, currency='RUB', prices=payments) # prices = детали цены(например цена продукта, налог, скидка и т.д.)
 
     @bot.message_handler(commands=['admin'])
     def tovar_msg(message):
@@ -221,12 +225,10 @@ def main():
                                      f'Привет, {message.from_user.first_name} {message.from_user.last_name}!',
                                      reply_markup=buttons.profile_btns())
                 elif message.text == 'Мои покупки🛒':
-                    bot.send_message(message.chat.id, 'Ваши покупки:\n1. Back4Blood')
+                    data = db_actions.get_preview_from_sales(user_id)
+                    bot.send_message(message.chat.id, 'Ваши покупки', reply_markup=buttons.purchased_btns(data))
                 elif message.text == 'Назад🔙':
-                    bot.send_message(message.chat.id,
-                                     f'Привет {message.from_user.first_name}👋\n'
-                                     f'{config.get_config()["start_msg"]}',
-                                     reply_markup=buttons.msg_buttons())
+                    start_menu(message, buttons)
                 elif message.text == 'Каталог продуктов🗂':
                     categories = db_actions.get_categories()
                     bot.send_message(message.chat.id, 'Выберите категорию✅',
@@ -297,6 +299,7 @@ def main():
             if command[:10] == 'categories':
                 if command[10:] == '<main>':
                     bot.delete_message(user_id, message_id)
+                    start_menu(call.message, buttons)
                 else:
                     subcategories = db_actions.get_sub_by_id_categories(command[10:])
                     bot.edit_message_text('🪪Выберите подкатегорию🪪', user_id, message_id,
@@ -308,10 +311,23 @@ def main():
                                           reply_markup=buttons.categories_btns(categories))
                 elif command[13:] == '<main>':
                     bot.delete_message(user_id, message_id)
+                    start_menu(call.message, buttons)
                 else:
                     products = db_actions.get_products_preview(command[13:])
                     bot.edit_message_text('🪪Выберите товар🪪', user_id, message_id,
                                           reply_markup=buttons.products_btns(products))
+            elif command[:9] == 'purchased':
+                if command[9:] == '<main>':
+                    if temp_user_data.temp_data(user_id)[user_id][4] is not None:
+                        bot.delete_message(user_id, temp_user_data.temp_data(user_id)[user_id][4])
+                        temp_user_data.temp_data(user_id)[user_id][4] = None
+                    bot.delete_message(user_id, message_id)
+                    start_menu(call.message, buttons)
+                else:
+                    content = db_actions.get_sale_by_id(command[9:])
+                    if temp_user_data.temp_data(user_id)[user_id][4] is not None:
+                        bot.delete_message(user_id, temp_user_data.temp_data(user_id)[user_id][4])
+                    temp_user_data.temp_data(user_id)[user_id][4] = bot.send_message(user_id, text=content).message_id
             elif command[:8] == 'products':
                 if command[8:] == '<back>':
                     if temp_user_data.temp_data(user_id)[user_id][3] is not None:
@@ -325,6 +341,7 @@ def main():
                         bot.delete_message(user_id, temp_user_data.temp_data(user_id)[user_id][3])
                         temp_user_data.temp_data(user_id)[user_id][3] = None
                     bot.delete_message(user_id, message_id)
+                    start_menu(call.message, buttons)
                 else:
                     product = db_actions.get_product_by_id(command[8:])
                     if temp_user_data.temp_data(user_id)[user_id][3] is not None:
@@ -360,5 +377,5 @@ if '__main__' == __name__:
     sheet = ExcellImport(db)
     db_actions = DbAct(db, config)
     bot = telebot.TeleBot(config.get_config()['tg_api'])
-    payments = config.get_config()['payments']
+    payments = config.get_config()['payment_api']
     main()

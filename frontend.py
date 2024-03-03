@@ -119,4 +119,11 @@ class Bot_inline_btns:
         markup.add(btn1, btn2, btn3, btn4, btn5, btn6)
         return markup
 
+    def purchased_btns(self, data):
+        data.append(('<main>', 'В главное меню'))
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        for i in data:
+            btn = types.InlineKeyboardButton(i[1], callback_data=f'purchased{i[0]}')
+            markup.add(btn)
+        return markup
 
