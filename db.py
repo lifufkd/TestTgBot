@@ -40,7 +40,8 @@ class DB:
             key TEXT,
             category TEXT,
             preview TEXT,
-            description TEXT
+            description TEXT,
+            with_reference BOOL
             )
             ''')
             self.__cursor.execute('''

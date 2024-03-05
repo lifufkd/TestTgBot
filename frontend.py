@@ -90,6 +90,15 @@ class Bot_inline_btns:
             markup.add(btn)
         return markup
 
+    def reference_btns(self):
+        data = list()
+        data.extend([('1', 'Да'), ('0', 'Нет'), ('<back>', 'назад'), ('<main>', 'В главное меню')])
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        for i in data:
+            btn = types.InlineKeyboardButton(i[1], callback_data=f'reference{i[0]}')
+            markup.add(btn)
+        return markup
+
     def products_btns(self, data):
         data.append(('<back>', 'назад'))
         data.append(('<main>', 'В главное меню'))

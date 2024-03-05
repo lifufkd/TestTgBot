@@ -18,7 +18,7 @@ class TempUserData:
 
     def temp_data(self, user_id):
         if user_id not in self.__user_data.keys():
-            self.__user_data.update({user_id: [None, [None, None, None, None, None, None], None, None, None]}) # 1 - status, 2 - m
+            self.__user_data.update({user_id: [None, [None, None, None, None, None, None, None], None, None, None, None, None, None]}) # 1 - status, 2 - m
         return self.__user_data
 
 
@@ -105,32 +105,36 @@ class DbAct:
 
     def get_sale_by_id(self, sale_id):
         s = ''
-        data = self.__db.db_read(f'SELECT time, key, price FROM sales WHERE product = ?', (sale_id, ))
+        data = self.__db.db_read(f'SELECT time, key, price FROM sales WHERE product = ? AND payment_status = ?', (sale_id, True))
         for i in data:
             s += f"Время покупки: {datetime.utcfromtimestamp(i[0]).strftime('%Y-%m-%d %H:%M')}\nКлюч: {i[1]}\nСумма покупки: {i[2]} ₽\n\n"
         return s
 
-    def add_one_product(self, data):
+    def add_one_product(self, datas):
         data = self.__db.db_read('SELECT MAX(row_id) FROM products', ())
         if len(data) > 0:
             new_id = int(data[0][0]) + 1
         else:
             new_id = 1
-        self.__db.db_write(f'INSERT INTO products (row_id, photo, price, key, description, category, preview) VALUES ({new_id}, ?, ?, ?, ?, ?, ?)', data)
+        self.__db.db_write(f'INSERT INTO products (row_id, photo, price, key, description, category, preview, with_reference) VALUES ({new_id}, ?, ?, ?, ?, ?, ?, ?)', datas)
 
     def update_products_from_excell(self, data):
         check = self.__db.db_read(f'SELECT row_id FROM products', ())
         for i in data:
             try:
                 i[1] = int(i[1])
+                if i[6].lower() == 'да':
+                    with_reference = True
+                else:
+                    with_reference = False
                 if tuple(i[0]) in check:
                     old_key = self.__db.db_read(f'SELECT key FROM products WHERE row_id = ?', (i[0], ))[0][0]
                     new_keys = ','.join(set(old_key.split(',') + i[2].split(',')))
-                    self.__db.db_write(f'UPDATE products SET price = ?, key = ?, preview = ?, category = ?, description = ? WHERE row_id = {i[0]}', (i[1], new_keys, i[3], i[4], i[5]))
+                    self.__db.db_write(f'UPDATE products SET price = ?, key = ?, preview = ?, category = ?, description = ?, with_reference = ? WHERE row_id = {i[0]}', (i[1], new_keys, i[3], i[4], i[5], with_reference))
                 else:
                     self.__db.db_write(
-                        f'INSERT INTO products (photo, row_id, price, key, preview, category, description) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                        (open('no-photo.png', 'rb').read(), i[0], i[1], i[2], i[3], i[4], i[5]))
+                        f'INSERT INTO products (photo, row_id, price, key, preview, category, description, with_reference) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                        (open('no-photo.png', 'rb').read(), i[0], i[1], i[2], i[3], i[4], i[5], with_reference))
             except:
                 pass
 
@@ -171,14 +175,29 @@ class DbAct:
         data = self.__db.db_read('SELECT photo, price, description FROM products WHERE row_id = ?', (id_product, ))
         return data[0]
 
-    def get_products_preview(self, id_product):
+    def get_products_preview(self, id_product, with_reference):
+        if with_reference == '1':
+            state = True
+        else:
+            state = False
         data = self.__db.db_read(
-            'SELECT row_id, preview, price FROM products WHERE category = ?',
-            (id_product,))
+            'SELECT row_id, preview, price FROM products WHERE category = ? AND with_reference = ?',
+            (id_product, state))
         return data
 
     def update_product(self, data, field, product_id):
         self.__db.db_write(f'UPDATE products SET {field} = ? WHERE row_id = ?', (data, product_id))
+
+    def add_sale(self, data):
+        self.__db.db_write(f'INSERT INTO sales (time, name, price, payment_status, nick_tg, user_id, key, product) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', data)
+    def get_product_by_id_for_buy(self, id_product):
+        out = list()
+        data = self.__db.db_read('SELECT price, key, description, category, preview FROM products WHERE row_id = ?', (id_product,))[0]
+        sub_cat_data = self.__db.db_read('SELECT id_categories, name FROM subcategories WHERE id = ?', (data[3],))[0]
+        cat_data = self.__db.db_read('SELECT name FROM categories WHERE id = ?', (sub_cat_data[0],))[0]
+        out.append(f'{cat_data[0]} - {sub_cat_data[1]} - {data[4]}')
+        out.extend(data[0:3])
+        return out
 
     def get_all_keys_product(self, product_id):
         data = self.__db.db_read(
