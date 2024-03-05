@@ -3,22 +3,22 @@
 #                SBR                #
 #               zzsxd               #
 #####################################
+from datetime import datetime
 import os
 import platform
 import time
-
 import telebot
 import random
 from telebot import types
 from threading import Lock
-from backend import TempUserData, DbAct, ExcellImport
+from backend import TempUserData, DbAct, Excell
 from config_parser import ConfigParser
 from db import DB
 from frontend import Bot_inline_btns
 
 ####################################################################
 config_name = 'secrets.json'
-
+payment_status = {True: 'Успешно', False: 'Отклонен'}
 
 ####################################################################
 
@@ -411,7 +411,9 @@ def main():
                                                     "или свяжитесь с администратором бота.")
         if not payment_status:
             keys = list()
-            db_actions.add_sale([time.time(), data[0], price, False, f'@{tg_nick}', user_id, data[1], data[2]])
+            timee = time.time()
+            sheet.add_sale([datetime.utcfromtimestamp(timee).strftime('%Y-%m-%d %H:%M'), data[0], price, 'Отклонена', f'@{tg_nick}', 'Нет'])
+            db_actions.add_sale([timee, data[0], price, False, f'@{tg_nick}', user_id, data[1], data[2]])
             if temp_user_data.temp_data(user_id)[user_id][7] is not None:
                 bot.delete_message(user_id, temp_user_data.temp_data(user_id)[user_id][7])
                 temp_user_data.temp_data(user_id)[user_id][7] = None
@@ -428,10 +430,12 @@ def main():
         tg_nick = message.from_user.username
         data = message.successful_payment.invoice_payload.split('ɹ')
         price = int(message.successful_payment.total_amount / 100)
+        timee = time.time()
         if temp_user_data.temp_data(user_id)[user_id][7] is not None:
             bot.delete_message(user_id, temp_user_data.temp_data(user_id)[user_id][7])
             temp_user_data.temp_data(user_id)[user_id][7] = None
-        db_actions.add_sale([time.time(), data[0], price, True, f'@{tg_nick}', user_id, data[1], data[2]])
+        db_actions.add_sale([timee, data[0], price, True, f'@{tg_nick}', user_id, data[1], data[2]])
+        sheet.add_sale([datetime.utcfromtimestamp(timee).strftime('%Y-%m-%d %H:%M'), data[0], price, 'Успешно', f'@{tg_nick}', data[1]])
         bot.send_message(user_id, f'Оплата совершена успешно, полная информация о вашей покупке продублирована в '
                                           f'Профиль>Мои покупки\nВаш лицензионный ключ: {data[1]}')
 
@@ -445,7 +449,7 @@ if '__main__' == __name__:
     config = ConfigParser(f'{work_dir}/{config_name}', os_type)
     temp_user_data = TempUserData()
     db = DB(config.get_config()['db_file_name'], Lock())
-    sheet = ExcellImport(db)
+    sheet = Excell(db)
     db_actions = DbAct(db, config)
     bot = telebot.TeleBot(config.get_config()['tg_api'])
     payments = config.get_config()['payment_api']

@@ -22,9 +22,9 @@ class TempUserData:
         return self.__user_data
 
 
-class ExcellImport:
+class Excell:
     def __init__(self, db):
-        super(ExcellImport, self).__init__()
+        super(Excell, self).__init__()
         self.__db = db
         self.__sheet = None
         self.init()
@@ -49,27 +49,13 @@ class ExcellImport:
         data = worksheet.get_all_values()
         return data[1:]
 
-
-class SheetExport:
-    def __init__(self, db):
-        super(SheetExport, self).__init__()
-        self.__column_names_db = [['A1', 'B1', 'C1']]
-        self.__db = db
-        self.__sheet = None
-        self.init()
-
-    def init(self):
-        creds = ServiceAccountCredentials.from_json_keyfile_name('creditionals.json')
-        file = gspread.authorize(creds)
-        workbook = file.open("Бот для продаж")
-        worksheet = self.__sheet.get_worksheet(0) # первая страница sheet
-        self.__sheet = workbook.sheet1
-
-    def update_excell(self):
+    def add_sale(self, values):
         worksheet = self.__sheet.get_worksheet(0)
-
-
-
+        lastRow = len(worksheet.get_all_values()) + 1
+        cell_list = worksheet.range(f'A{lastRow}:F{lastRow}')
+        for i in range(len(cell_list)):
+            cell_list[i].value = values[i]
+        worksheet.update_cells(cell_list)
 
 class DbAct:
     def __init__(self, db, config):

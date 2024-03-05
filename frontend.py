@@ -105,7 +105,7 @@ class Bot_inline_btns:
         markup = types.InlineKeyboardMarkup(row_width=1)
         for i in data:
             if i[0] not in ['<back>', '<main>']:
-                btn = types.InlineKeyboardButton(f'{i[1]} * {i[2]}', callback_data=f'products{i[0]}')
+                btn = types.InlineKeyboardButton(f'{i[1]} * {i[2]}₽', callback_data=f'products{i[0]}')
             else:
                 btn = types.InlineKeyboardButton(i[1], callback_data=f'products{i[0]}')
             markup.add(btn)
