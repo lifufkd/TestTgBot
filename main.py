@@ -11,7 +11,7 @@ import telebot
 import random
 from telebot import types
 from threading import Lock
-from backend import TempUserData, DbAct, Excell
+from backend import TempUserData, DbAct, Excell, Payment
 from config_parser import ConfigParser
 from db import DB
 from frontend import Bot_inline_btns
@@ -451,6 +451,7 @@ if '__main__' == __name__:
     db = DB(config.get_config()['db_file_name'], Lock())
     sheet = Excell(db)
     db_actions = DbAct(db, config)
+    payment = Payment(config)
     bot = telebot.TeleBot(config.get_config()['tg_api'])
     payments = config.get_config()['payment_api']
     main()
