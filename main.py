@@ -9,7 +9,7 @@ import platform
 import time
 import telebot
 import random
-from telebot import types
+import threading
 from threading import Lock
 from backend import TempUserData, DbAct, Excell, Payment
 from config_parser import ConfigParser
@@ -259,8 +259,7 @@ def main():
     @bot.callback_query_handler(func=lambda call: True)
     def callback(call):
         command = call.data
-        user_input = call.message.text
-        photo = call.message.photo
+        tg_nick = call.message.from_user.username
         message_id = call.message.id
         user_id = call.message.chat.id
         if db_actions.user_is_existed(user_id):
@@ -377,9 +376,10 @@ def main():
                     keys.remove(key)
                     db_actions.update_product(','.join(keys), 'key', command[3:])
                     price = product[1] - (int(product[1] / 100) * ((product[1] // config.get_config()['step_sale']) * config.get_config()['percent_sale']))
-                    temp_user_data.temp_data(user_id)[user_id][7] = bot.send_invoice(user_id, title=f'Активационный ключ для {product[0]}', description=product[3],
-                                     invoice_payload=f'{product[0]}ɹ{key}ɹ{command[3:]}', provider_token=payments, currency='RUB',
-                                     prices=[types.LabeledPrice('Оплата товара', price * 100)]).message_id
+                    order_id = db_actions.add_sale([0, product[0], price, False, f'@{tg_nick}', user_id, key, command[3:]])
+                    order = payment.create_new_payment(f'Активационный ключ для {product[0]}', price, product[3], order_id)
+                    msg_id = bot.send_message(user_id, 'Оплатить заказ', reply_markup=buttons.pay_btn(price, order[0])).message_id
+                    threading.Thread(target=payment.shedule, args=(order_id, order[1], product[0], price, f'@{tg_nick}', user_id, msg_id, bot, key, command[3:])).start()
                 else:
                     bot.answer_callback_query(call.id, "Ключей нет в наличии", show_alert=True)
             elif command[:9] == 'purchased':
@@ -397,46 +397,6 @@ def main():
         else:
             bot.send_message(user_id, 'Введите /start для запуска бота')
 
-    @bot.pre_checkout_query_handler(func=lambda query: True)
-    def checkout(message):
-        user_id = message.from_user.id
-        tg_nick = message.from_user.username
-        data = message.invoice_payload.split('ɹ')
-        price = int(message.total_amount / 100)
-        payment_status = bot.answer_pre_checkout_query(message.id, ok=True,
-                                      error_message="Оплата не прошла - попробуйте, пожалуйста, еще раз,"
-                                                    "или свяжитесь с администратором бота.")
-        if not payment_status:
-            keys = list()
-            timee = time.time()
-            sheet.add_sale([datetime.utcfromtimestamp(timee).strftime('%Y-%m-%d %H:%M'), data[0], price, 'Отклонена', f'@{tg_nick}', 'Нет'])
-            db_actions.add_sale([timee, data[0], price, False, f'@{tg_nick}', user_id, data[1], data[2]])
-            if temp_user_data.temp_data(user_id)[user_id][7] is not None:
-                bot.delete_message(user_id, temp_user_data.temp_data(user_id)[user_id][7])
-                temp_user_data.temp_data(user_id)[user_id][7] = None
-            product = db_actions.get_product_by_id_for_buy(data[2])
-            for i in product[2].split(','):
-                if i != '':
-                    keys.append(i)
-            keys.append(data[1])
-            db_actions.update_product(','.join(keys), 'key', product[2])
-
-    @bot.message_handler(content_types=['successful_payment'])
-    def got_payment(message):
-        user_id = message.from_user.id
-        tg_nick = message.from_user.username
-        data = message.successful_payment.invoice_payload.split('ɹ')
-        price = int(message.successful_payment.total_amount / 100)
-        timee = time.time()
-        if temp_user_data.temp_data(user_id)[user_id][7] is not None:
-            bot.delete_message(user_id, temp_user_data.temp_data(user_id)[user_id][7])
-            temp_user_data.temp_data(user_id)[user_id][7] = None
-        db_actions.add_sale([timee, data[0], price, True, f'@{tg_nick}', user_id, data[1], data[2]])
-        sheet.add_sale([datetime.utcfromtimestamp(timee).strftime('%Y-%m-%d %H:%M'), data[0], price, 'Успешно', f'@{tg_nick}', data[1]])
-        bot.send_message(user_id, f'Оплата совершена успешно, полная информация о вашей покупке продублирована в '
-                                          f'Профиль>Мои покупки\nВаш лицензионный ключ: {data[1]}')
-
-
     bot.polling(none_stop=True)
 
 
@@ -448,7 +408,6 @@ if '__main__' == __name__:
     db = DB(config.get_config()['db_file_name'], Lock())
     sheet = Excell(db)
     db_actions = DbAct(db, config)
-    payment = Payment(config)
+    payment = Payment(config, db_actions, sheet)
     bot = telebot.TeleBot(config.get_config()['tg_api'])
-    payments = config.get_config()['payment_api']
     main()

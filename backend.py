@@ -3,10 +3,13 @@
 #                SBR                #
 #               zzsxd               #
 #####################################
+import time
+
 import gspread
+import hashlib
+import requests
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
-import requests
 #####################################
 
 
@@ -175,6 +178,11 @@ class DbAct:
 
     def add_sale(self, data):
         self.__db.db_write(f'INSERT INTO sales (time, name, price, payment_status, nick_tg, user_id, key, product) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', data)
+        return self.__db.db_read(f'SELECT max(row_id) FROM sales', ())[0][0]
+
+    def update_sale(self, time, payment_status, product_id):
+        self.__db.db_write(f'UPDATE sales SET time = ?, payment_status = ? WHERE row_id = ?', (time, payment_status, product_id))
+
     def get_product_by_id_for_buy(self, id_product):
         out = list()
         data = self.__db.db_read('SELECT price, key, description, category, preview FROM products WHERE row_id = ?', (id_product,))[0]
@@ -200,46 +208,103 @@ class DbAct:
             else:
                 status = False
             return status
+
+
 class Payment:
-    def __init__(self, config):
+    def __init__(self, config, db_act, sheet):
         super(Payment, self).__init__()
         self.__config = config
-    def get_sha_key(self):
-        # Пример эндпоинта для создания чека (может измениться)
-        api_url = "https://securepay.tinkoff.ru/v2/Init"
+        self.__db_act = db_act
+        self.__sheet = sheet
 
-        # Пример данных для создания чека (замените на реальные данные)
+    def shedule(self, order_id, payment_id, name, price, nick, user_id, msg_id, bot, key, product_id):
+        c = 0
+        keys = list()
+        while True:
+            status = self.check_payment(payment_id, order_id)
+            c += 1
+            if c >= self.__config.get_config()['payment_timeout'] * 60 or status in ['AUTH_FAIL', 'REJECTED']:
+                timee = time.time()
+                self.__db_act.update_sale(timee, False, order_id)
+                self.__sheet.add_sale(
+                    [datetime.utcfromtimestamp(timee).strftime('%Y-%m-%d %H:%M'), name, price, 'Отклонена',
+                     nick, 'Нет'])
+                product = self.__db_act.get_product_by_id_for_buy(product_id)
+                print(product)
+                for i in product[2].split(','):
+                    if i != '':
+                        keys.append(i)
+                keys.append(key)
+                self.__db_act.update_product(','.join(keys), 'key', product_id)
+                bot.delete_message(user_id, msg_id)
+                bot.send_message(user_id, "Оплата не успешна, попробуйте ещё раз")
+                break # end deny pay
+            elif status in ['CONFIRMED', 'AUTHORIZED']:
+                timee = time.time()
+                self.__db_act.update_sale(timee, True, order_id)
+                self.__sheet.add_sale(
+                    [datetime.utcfromtimestamp(timee).strftime('%Y-%m-%d %H:%M'), name, price, 'Успешна',
+                     nick, 'Нет'])
+                bot.delete_message(user_id, msg_id)
+                bot.send_message(user_id,
+                                 f'Оплата совершена успешно, полная информация о вашей покупке продублирована в '
+                                 f'Профиль>Мои покупки\nВаш лицензионный ключ: {key}')
+                break
+            time.sleep(1)
+
+    def get_sha_key(self):
+        t = []
+        r = {
+            "TerminalKey": self.__config.get_config()['token'],
+            "Amount": 1000,
+            "OrderId": "1",
+            "Password": self.__config.get_config()['terminal_password']
+        }
+        for key, value in r.items():
+            t.append({key: value})
+        t = sorted(t, key=lambda x: list(x.keys())[0])
+        t = "".join(str(value) for item in t for value in item.values())
+        sha256 = hashlib.sha256()
+        sha256.update(t.encode('utf-8'))
+        t = sha256.hexdigest()
+        return t
+
+    def create_new_payment(self, name, price, desc, order_id):
+        api_url = "https://securepay.tinkoff.ru/v2/Init"
         payload = {
-            "TerminalKey": "",
-            "Amount": 140000,
-            "OrderId": "21090",
-            "Token": "",
+            "TerminalKey": self.__config.get_config()['token'],
+            "Amount": price*100,
+            "OrderId": order_id,
+            "Description": desc,
+            "Token": self.get_sha_key(),
             "DATA": {
-                "Phone": "+71234567890",
-                "Email": "a@test.com"},
+                "Email": "ваша@почта.ru"},
             "Receipt": {
-                "Email": "a@test.ru",
-                "Phone": "+79031234567",
+                "Email": "ваша@почта.ru",
                 "Taxation": "osn",
                 "Items": [
                     {
-                        "Name": "Наименование товара 1",
+                        "Name": name,
                         "Price": 10000,
                         "Quantity": 1.00,
-                        "Amount": 140000,
+                        "Amount": price*100,
                         "Tax": "none"
                     },
                 ]
             }
         }
+        response = requests.post(api_url, json=payload).json()
+        return [response['PaymentURL'], response['PaymentId']]
 
-        # Отправка POST-запроса
-        response = requests.post(api_url, json=payload)
-
-        # Обработка ответа
-        if response.status_code == 200:
-            data = response.json()
-            print("Успешный ответ:", data)
-        else:
-            print(f"Ошибка запроса. Код: {response.status_code}, Текст: {response.text}")
-
+    def check_payment(self, payment_id, order_id):
+        api_url = "https://securepay.tinkoff.ru/v2/GetState"
+        tokentr = self.__config.get_config()['terminal_password'] + payment_id + self.__config.get_config()['token']
+        tokensha256 = str(hashlib.sha256(tokentr.encode()).hexdigest())
+        payload = {
+            "TerminalKey": self.__config.get_config()['token'],
+            "PaymentId": payment_id,
+            "Token": tokensha256,
+            "OrderId": order_id,
+        }
+        response = requests.post(api_url, json=payload).json()
+        return response['Status']

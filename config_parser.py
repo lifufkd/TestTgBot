@@ -17,7 +17,8 @@ class ConfigParser:
         self.__file_path = file_path
         self.__default_pathes = {'Windows': 'C:\\', 'Linux': '/'}
         self.__default = {'tg_api': '', 'admins': [], 'db_file_name': '', 'FAQ': '', 'contacts': '', 'start_msg': '',
-                          'step_sale': 500, 'percent_sale': 0, 'payment_api': '', 'payment_timeout': 15}
+                          'step_sale': 500, 'percent_sale': 0, 'payment_api': '', 'payment_timeout': 15,
+                          'terminal_password': '', 'token': ''}
         self.__current_config = None
         self.load_conf()
 

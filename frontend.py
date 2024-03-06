@@ -136,3 +136,9 @@ class Bot_inline_btns:
             markup.add(btn)
         return markup
 
+    def pay_btn(self, price, url):
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        btn = types.InlineKeyboardButton(f'Оплатить {price}₽', url=url)
+        markup.add(btn)
+        return markup
+
