@@ -5,9 +5,8 @@
 #####################################
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-import time
 from datetime import datetime
-from PIL import Image
+import requests
 #####################################
 
 
@@ -201,5 +200,46 @@ class DbAct:
             else:
                 status = False
             return status
+class Payment:
+    def __init__(self, config):
+        super(Payment, self).__init__()
+        self.__config = config
+    def get_sha_key(self):
+        # Пример эндпоинта для создания чека (может измениться)
+        api_url = "https://securepay.tinkoff.ru/v2/Init"
 
+        # Пример данных для создания чека (замените на реальные данные)
+        payload = {
+            "TerminalKey": "",
+            "Amount": 140000,
+            "OrderId": "21090",
+            "Token": "",
+            "DATA": {
+                "Phone": "+71234567890",
+                "Email": "a@test.com"},
+            "Receipt": {
+                "Email": "a@test.ru",
+                "Phone": "+79031234567",
+                "Taxation": "osn",
+                "Items": [
+                    {
+                        "Name": "Наименование товара 1",
+                        "Price": 10000,
+                        "Quantity": 1.00,
+                        "Amount": 140000,
+                        "Tax": "none"
+                    },
+                ]
+            }
+        }
+
+        # Отправка POST-запроса
+        response = requests.post(api_url, json=payload)
+
+        # Обработка ответа
+        if response.status_code == 200:
+            data = response.json()
+            print("Успешный ответ:", data)
+        else:
+            print(f"Ошибка запроса. Код: {response.status_code}, Текст: {response.text}")
 
