@@ -259,7 +259,7 @@ def main():
     @bot.callback_query_handler(func=lambda call: True)
     def callback(call):
         command = call.data
-        tg_nick = call.message.from_user.username
+        tg_nick = call.message.chat.username
         message_id = call.message.id
         user_id = call.message.chat.id
         if db_actions.user_is_existed(user_id):
