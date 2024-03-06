@@ -15,11 +15,8 @@ from backend import TempUserData, DbAct, Excell
 from config_parser import ConfigParser
 from db import DB
 from frontend import Bot_inline_btns
-
 ####################################################################
 config_name = 'secrets.json'
-payment_status = {True: 'Успешно', False: 'Отклонен'}
-
 ####################################################################
 
 
