@@ -46,13 +46,19 @@ class Bot_inline_btns:
 
 
     def profile_btns(self):
-        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        my_buys = types.KeyboardButton('Мои покупки🛒')
-        back = types.KeyboardButton('Назад🔙')
-        keyboard.add(my_buys, back)
-        return keyboard
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        my_buys = types.InlineKeyboardButton('Мои покупки🛒' , callback_data='my_buys')
+        back = types.InlineKeyboardButton('Назад🔙' , callback_data='back')
+        markup.add(my_buys, back)
+        return markup
 
     def support_btns(self):
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        my_buys = types.InlineKeyboardButton('Наши контакты👥', callback_data='our_contacts')
+        FAQ = types.InlineKeyboardButton('FAQℹ️', callback_data='FAQ')
+        back = types.InlineKeyboardButton('Назад🔙', callback_data='back')
+        markup.add(my_buys, FAQ, back)
+        return markup
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
         our_contacts = types.KeyboardButton('Наши контакты👥')
         FAQ = types.KeyboardButton('FAQℹ️')

@@ -271,24 +271,15 @@ def main():
                         bot.send_message(message.chat.id, '❌Это не текст❌')
             else:
                 if message.text == 'Профиль👤':
-                    bot.send_message(message.chat.id,
+                    temp_user_data.temp_data(user_id)[user_id][7] = bot.send_message(message.chat.id,
                                      f'Привет, {message.from_user.first_name} {message.from_user.last_name}!',
-                                     reply_markup=buttons.profile_btns())
-                elif message.text == 'Мои покупки🛒':
-                    data = db_actions.get_preview_from_sales(user_id)
-                    bot.send_message(message.chat.id, 'Ваши покупки', reply_markup=buttons.purchased_btns(data))
-                elif message.text == 'Назад🔙':
-                    start_menu(message, buttons)
+                                     reply_markup=buttons.profile_btns()).message_id
                 elif message.text == 'Каталог продуктов🗂':
                     categories = db_actions.get_categories()
                     temp_user_data.temp_data(user_id)[user_id][6] = bot.send_message(message.chat.id, config.get_config()['text_category'],
                                      reply_markup=buttons.categories_btns(categories)).message_id
                 elif message.text == 'Поддержка👨‍💻':
-                    bot.send_message(message.chat.id, 'Выберите действие✅', reply_markup=buttons.support_btns())
-                elif message.text == 'Наши контакты👥':
-                    bot.send_message(message.chat.id, f'Наши контакты:\n{config.get_config()["contacts"]}')
-                elif message.text == 'FAQℹ️':
-                    bot.send_message(message.chat.id, f'FAQ:\n{config.get_config()["FAQ"]}')
+                    temp_user_data.temp_data(user_id)[user_id][7] = bot.send_message(message.chat.id, 'Выберите действие✅', reply_markup=buttons.support_btns()).message_id
         else:
             bot.send_message(message.chat.id, 'Введите /start для запуска бота')
 
@@ -405,6 +396,18 @@ def main():
                                                                                    chat_id=user_id,
                                                                                    reply_markup=buttons.buy_btns(
                                                                                        command[8:], product[3], product[4])).message_id
+            elif command == 'my_buys':
+                data = db_actions.get_preview_from_sales(user_id)
+                bot.send_message(user_id, 'Ваши покупки', reply_markup=buttons.purchased_btns(data))
+            elif command == 'back':
+                if temp_user_data.temp_data(user_id)[user_id][7] is not None:
+                    bot.delete_message(user_id, temp_user_data.temp_data(user_id)[user_id][7])
+                    temp_user_data.temp_data(user_id)[user_id][7] = None
+                start_menu(call.message, buttons)
+            elif command == 'our_contacts':
+                bot.send_message(user_id, f'Наши контакты:\n{config.get_config()["contacts"]}')
+            elif command == 'FAQ':
+                bot.send_message(user_id, f'FAQ:\n{config.get_config()["FAQ"]}')
             elif command[:3] == 'buy':
                 if command[3:] == '<back>':
                     if temp_user_data.temp_data(user_id)[user_id][3] is not None:
