@@ -95,7 +95,7 @@ class DbAct:
         s = ''
         data = self.__db.db_read(f'SELECT time, key, price FROM sales WHERE product = ? AND payment_status = ?', (sale_id, True))
         for i in data:
-            s += f"Время покупки: {datetime.utcfromtimestamp(i[0]).strftime('%Y-%m-%d %H:%M')}\nКлюч: {i[1]}\nСумма покупки: {i[2]} ₽\n\n"
+            s += f"Время покупки: {datetime.utcfromtimestamp(i[0]).strftime('%d.%m.%Y %H:%M:%S')}\nКлюч: {i[1]}\nСумма покупки: {i[2]} ₽\n\n"
         return s
 
     def add_one_product(self, datas):
@@ -165,6 +165,15 @@ class DbAct:
             (id_product, ))
         return data
 
+    def get_all_products_preview(self):
+        data = self.__db.db_read(
+            'SELECT row_id, preview, price FROM products',
+            ())
+        return data
+
+    def delete_product(self, product_id):
+        self.__db.db_write(f'DELETE FROM products WHERE row_id = ?', (product_id, ))
+
     def update_product(self, data, field, product_id):
         self.__db.db_write(f'UPDATE products SET {field} = ? WHERE row_id = ?', (data, product_id))
 
@@ -201,6 +210,9 @@ class DbAct:
                 status = False
             return status
 
+    def check_already_open_sale(self, user_id):
+        return self.__db.db_read(f'SELECT count(*) FROM sales WHERE user_id = ? AND time = ?', (user_id, 0))[0][0]
+
 
 class Payment:
     def __init__(self, config, db_act, sheet):
@@ -209,20 +221,34 @@ class Payment:
         self.__db_act = db_act
         self.__sheet = sheet
 
-    def shedule(self, order_id, payment_id, name, price, nick, user_id, msg_id, bot, key, product_id):
+    def shedule(self, order_id, payment_id, name, price, user_id, msg_id, bot, key, product_id):
         c = 0
         keys = list()
         while True:
             status = self.check_payment(payment_id, order_id)
             c += 1
-            if c >= self.__config.get_config()['payment_timeout'] * 60 or status in ['AUTH_FAIL', 'REJECTED']:
+            if c >= self.__config.get_config()['payment_timeout'] * 60:
                 timee = time.time()
                 self.__db_act.update_sale(timee, False, order_id)
                 self.__sheet.add_sale(
-                    [datetime.utcfromtimestamp(timee).strftime('%Y-%m-%d %H:%M'), name, price, 'Отклонена',
-                     nick, 'Нет'])
+                    [datetime.utcfromtimestamp(timee).strftime('%d.%m.%Y %H:%M:%S'), name, price, 'Отклонена',
+                     user_id, 'Нет'])
                 product = self.__db_act.get_product_by_id_for_buy(product_id)
-                print(product)
+                for i in product[2].split(','):
+                    if i != '':
+                        keys.append(i)
+                keys.append(key)
+                self.__db_act.update_product(','.join(keys), 'key', product_id)
+                bot.delete_message(user_id, msg_id)
+                bot.send_message(user_id, "Время на оплату истекло, попробуйте ещё раз")
+                break # end deny pay
+            elif status in ['AUTH_FAIL', 'REJECTED']:
+                timee = time.time()
+                self.__db_act.update_sale(timee, False, order_id)
+                self.__sheet.add_sale(
+                    [datetime.utcfromtimestamp(timee).strftime('%d.%m.%Y %H:%M:%S'), name, price, 'Отклонена',
+                     user_id, 'Нет'])
+                product = self.__db_act.get_product_by_id_for_buy(product_id)
                 for i in product[2].split(','):
                     if i != '':
                         keys.append(i)
@@ -230,13 +256,12 @@ class Payment:
                 self.__db_act.update_product(','.join(keys), 'key', product_id)
                 bot.delete_message(user_id, msg_id)
                 bot.send_message(user_id, "Оплата не успешна, попробуйте ещё раз")
-                break # end deny pay
             elif status in ['CONFIRMED', 'AUTHORIZED']:
                 timee = time.time()
                 self.__db_act.update_sale(timee, True, order_id)
                 self.__sheet.add_sale(
-                    [datetime.utcfromtimestamp(timee).strftime('%Y-%m-%d %H:%M'), name, price, 'Успешна',
-                     nick, key])
+                    [datetime.utcfromtimestamp(timee).strftime('%d.%m.%Y %H:%M:%S'), name, price, 'Успешна',
+                     user_id, key])
                 bot.delete_message(user_id, msg_id)
                 bot.send_message(user_id,
                                  f'Оплата совершена успешно, полная информация о вашей покупке продублирована в '
