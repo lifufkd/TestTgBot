@@ -135,6 +135,8 @@ class DbAct:
         products = self.__db.db_read('SELECT product, name FROM sales WHERE user_id = ? AND payment_status = ?', (user_id, True))
         return list(set(products))
 
+    def delete_category(self, row_id):
+        self.__db.db_write(f'DELETE FROM categories WHERE id = ?', (row_id, ))
     def update_subcategories_from_excell(self, data):
         check = self.__db.db_read(f'SELECT id FROM subcategories', ())
         for i in data:
@@ -173,6 +175,9 @@ class DbAct:
 
     def delete_product(self, product_id):
         self.__db.db_write(f'DELETE FROM products WHERE row_id = ?', (product_id, ))
+
+    def delete_subcot(self, row_id):
+        self.__db.db_write(f'DELETE FROM subcategories WHERE id = ?', (row_id, ))
 
     def update_product(self, data, field, product_id):
         self.__db.db_write(f'UPDATE products SET {field} = ? WHERE row_id = ?', (data, product_id))

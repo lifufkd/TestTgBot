@@ -24,7 +24,7 @@ def get_subcot():
     s = ''
     data = db_actions.get_subcategories()
     for i in data:
-        s += f'{i[0]} - {i[1]}\n'
+        s += f'{i[0]}. {i[1]}\n'
     return s
 
 def get_preview():
@@ -32,6 +32,13 @@ def get_preview():
     data = db_actions.get_all_products_preview()
     for i in data:
         s += f'{i[0]}. {i[1]} * {i[2]}\n'
+    return s
+
+def get_category():
+    s = ''
+    data = db_actions.get_categories()
+    for i in data:
+        s += f'{i[0]}. {i[1]}\n'
     return s
 
 def start_menu(message, buttons):
@@ -283,6 +290,20 @@ def main():
                         bot.send_message(message.chat.id, '✅Изменения успешно сохранены✅')
                     else:
                         bot.send_message(message.chat.id, '❌Это не текст❌')
+                elif status == 26:
+                    if user_input is not None:
+                        db_actions.delete_category(user_input)
+                        temp_user_data.temp_data(user_id)[user_id][0] = None
+                        bot.send_message(message.chat.id, '✅Изменения успешно сохранены✅')
+                    else:
+                        bot.send_message(message.chat.id, '❌Это не текст❌')
+                elif status == 27:
+                    if user_input is not None:
+                        db_actions.delete_subcot(user_input)
+                        temp_user_data.temp_data(user_id)[user_id][0] = None
+                        bot.send_message(message.chat.id, '✅Изменения успешно сохранены✅')
+                    else:
+                        bot.send_message(message.chat.id, '❌Это не текст❌')
             else:
                 if message.text == 'Профиль👤':
                     temp_user_data.temp_data(user_id)[user_id][7] = bot.send_message(message.chat.id,
@@ -366,8 +387,17 @@ def main():
                     temp_user_data.temp_data(user_id)[user_id][0] = 24
                     bot.send_message(call.message.chat.id, '✉️Введите новый текст отображаемый в меню товаров✉️')
                 elif command == 'delete_product':
+                    bot.send_message(call.message.chat.id,
+                                     f'️Из какой категории вы хотите удалить?', reply_markup=buttons.delete_btns())
+                elif command == 'delete_prod':
                     temp_user_data.temp_data(user_id)[user_id][0] = 25
                     bot.send_message(call.message.chat.id, f'️Введите ID товара из списка который хотите удалить:\n{get_preview()}')
+                elif command == 'delete_cat':
+                    temp_user_data.temp_data(user_id)[user_id][0] = 26
+                    bot.send_message(call.message.chat.id, f'️Введите ID категории из списка которую хотите удалить:\n{get_category()}')
+                elif command == 'delete_precat':
+                    temp_user_data.temp_data(user_id)[user_id][0] = 27
+                    bot.send_message(call.message.chat.id, f'️Введите ID подкатегории из списка которую хотите удалить:\n{get_subcot()}')
             if command[:10] == 'categories':
                 if command[10:] == '<main>':
                     bot.delete_message(user_id, message_id)

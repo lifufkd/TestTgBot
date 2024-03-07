@@ -79,7 +79,7 @@ class Bot_inline_btns:
         changecat = types.InlineKeyboardButton('Изменить текст категории', callback_data='changecat')
         changeprecat = types.InlineKeyboardButton('Изменить текст подкатегории', callback_data='changeprecat')
         changeprod = types.InlineKeyboardButton('Изменить текст товара', callback_data='changeprod')
-        delete_product = types.InlineKeyboardButton('Удалить товар', callback_data='delete_product')
+        delete_product = types.InlineKeyboardButton('Удалить', callback_data='delete_product')
         self.__markup.add(addproduct, importproducts, importcategories, importsubcategories, changeproduct,
                           changhecontact, changefaq, changestartmsg, changesale, changecat, changeprecat, changeprod, delete_product)
         return self.__markup
@@ -90,6 +90,14 @@ class Bot_inline_btns:
         for i in data:
             btn = types.InlineKeyboardButton(i[1], callback_data=f'categories{i[0]}')
             markup.add(btn)
+        return markup
+
+    def delete_btns(self):
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        as1 = types.InlineKeyboardButton('Удалить категорию', callback_data='delete_cat')
+        as2 = types.InlineKeyboardButton('Удалить подкатегорию', callback_data='delete_precat')
+        as3 = types.InlineKeyboardButton('Удалить товар', callback_data='delete_prod')
+        markup.add(as1, as2, as3)
         return markup
 
     def subcategories_btns(self, data):
