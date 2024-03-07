@@ -20,7 +20,7 @@ class TempUserData:
 
     def temp_data(self, user_id):
         if user_id not in self.__user_data.keys():
-            self.__user_data.update({user_id: [None, [None, None, None, None, None, None, None], None, None, None, None, None, None]}) # 1 - status, 2 - m
+            self.__user_data.update({user_id: [None, [None, None, None, None, None, None, None, None], None, None, None, None, None, None]}) # 1 - status, 2 - m
         return self.__user_data
 
 
@@ -104,25 +104,21 @@ class DbAct:
             new_id = int(data[0][0]) + 1
         else:
             new_id = 1
-        self.__db.db_write(f'INSERT INTO products (row_id, photo, price, key, description, category, preview, with_reference) VALUES ({new_id}, ?, ?, ?, ?, ?, ?, ?)', datas)
+        self.__db.db_write(f'INSERT INTO products (row_id, photo, price, key, description, category, preview, distro_url, instruction_url) VALUES ({new_id}, ?, ?, ?, ?, ?, ?, ?, ?)', datas)
 
     def update_products_from_excell(self, data):
         check = self.__db.db_read(f'SELECT row_id FROM products', ())
         for i in data:
             try:
                 i[1] = int(i[1])
-                if i[6].lower() == 'да':
-                    with_reference = True
-                else:
-                    with_reference = False
                 if tuple(i[0]) in check:
                     old_key = self.__db.db_read(f'SELECT key FROM products WHERE row_id = ?', (i[0], ))[0][0]
                     new_keys = ','.join(set(old_key.split(',') + i[2].split(',')))
-                    self.__db.db_write(f'UPDATE products SET price = ?, key = ?, preview = ?, category = ?, description = ?, with_reference = ? WHERE row_id = {i[0]}', (i[1], new_keys, i[3], i[4], i[5], with_reference))
+                    self.__db.db_write(f'UPDATE products SET price = ?, key = ?, preview = ?, category = ?, description = ?, distro_url = ?, instruction_url = ? WHERE row_id = {i[0]}', (i[1], new_keys, i[3], i[4], i[5], i[6], i[7]))
                 else:
                     self.__db.db_write(
-                        f'INSERT INTO products (photo, row_id, price, key, preview, category, description, with_reference) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-                        (open('no-photo.png', 'rb').read(), i[0], i[1], i[2], i[3], i[4], i[5], with_reference))
+                        f'INSERT INTO products (photo, row_id, price, key, preview, category, description, distro_url, instruction_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                        (open('no-photo.png', 'rb').read(), i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7]))
             except:
                 pass
 
@@ -160,17 +156,13 @@ class DbAct:
         return data
 
     def get_product_by_id(self, id_product):
-        data = self.__db.db_read('SELECT photo, price, description FROM products WHERE row_id = ?', (id_product, ))
+        data = self.__db.db_read('SELECT photo, price, description, instruction_url, distro_url FROM products WHERE row_id = ?', (id_product, ))
         return data[0]
 
-    def get_products_preview(self, id_product, with_reference):
-        if with_reference == '1':
-            state = True
-        else:
-            state = False
+    def get_products_preview(self, id_product):
         data = self.__db.db_read(
-            'SELECT row_id, preview, price FROM products WHERE category = ? AND with_reference = ?',
-            (id_product, state))
+            'SELECT row_id, preview, price FROM products WHERE category = ?',
+            (id_product, ))
         return data
 
     def update_product(self, data, field, product_id):
@@ -244,7 +236,7 @@ class Payment:
                 self.__db_act.update_sale(timee, True, order_id)
                 self.__sheet.add_sale(
                     [datetime.utcfromtimestamp(timee).strftime('%Y-%m-%d %H:%M'), name, price, 'Успешна',
-                     nick, 'Нет'])
+                     nick, key])
                 bot.delete_message(user_id, msg_id)
                 bot.send_message(user_id,
                                  f'Оплата совершена успешно, полная информация о вашей покупке продублирована в '

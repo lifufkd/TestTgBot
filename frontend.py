@@ -70,7 +70,11 @@ class Bot_inline_btns:
         changefaq = types.InlineKeyboardButton('Изменить FAQ', callback_data='changefaq')
         changestartmsg = types.InlineKeyboardButton('Изменить стартовое сообщение', callback_data='changestartmsg')
         changesale = types.InlineKeyboardButton('Изменить скидку', callback_data='changesale')
-        self.__markup.add(addproduct, importproducts, importcategories, importsubcategories, changeproduct, changhecontact, changefaq, changestartmsg, changesale)
+        changecat = types.InlineKeyboardButton('Изменить текст категории', callback_data='changecat')
+        changeprecat = types.InlineKeyboardButton('Изменить текст подкатегории', callback_data='changeprecat')
+        changeprod = types.InlineKeyboardButton('Изменить текст товара', callback_data='changeprod')
+        self.__markup.add(addproduct, importproducts, importcategories, importsubcategories, changeproduct,
+                          changhecontact, changefaq, changestartmsg, changesale, changecat, changeprecat, changeprod)
         return self.__markup
 
     def categories_btns(self, data):
@@ -111,10 +115,14 @@ class Bot_inline_btns:
             markup.add(btn)
         return markup
 
-    def buy_btns(self, id_product):
+    def buy_btns(self, id_product, instuction_url, distro_url):
         markup = types.InlineKeyboardMarkup(row_width=1)
-        btn = types.InlineKeyboardButton('Купить', callback_data=f'buy{id_product}')
-        markup.add(btn)
+        btn1 = types.InlineKeyboardButton('Купить', callback_data=f'buy{id_product}')
+        btn2 = types.InlineKeyboardButton('Скачать дистрибутив', url=distro_url)
+        btn3 = types.InlineKeyboardButton('Инструкция по активации', url=instuction_url)
+        btn4 = types.InlineKeyboardButton('Назад', callback_data=f'buy<back>')
+        btn5 = types.InlineKeyboardButton('В главное меню', callback_data=f'buy<main>')
+        markup.add(btn1, btn2, btn3, btn4, btn5)
         return markup
 
     def change_btns(self):
@@ -125,7 +133,9 @@ class Bot_inline_btns:
         btn4 = types.InlineKeyboardButton('Подкатегорию', callback_data=f'сhangecart4')
         btn5 = types.InlineKeyboardButton('Описание', callback_data=f'сhangecart5')
         btn6 = types.InlineKeyboardButton('Превью', callback_data=f'сhangecart6')
-        markup.add(btn1, btn2, btn3, btn4, btn5, btn6)
+        btn7 = types.InlineKeyboardButton('Инструкцию по активации', callback_data=f'сhangecart7')
+        btn8 = types.InlineKeyboardButton('Ссылку на дистрибутив', callback_data=f'сhangecart8')
+        markup.add(btn1, btn2, btn3, btn4, btn5, btn6, btn7, btn8)
         return markup
 
     def purchased_btns(self, data):

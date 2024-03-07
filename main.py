@@ -179,7 +179,7 @@ def main():
                     if user_input is not None:
                         temp_user_data.temp_data(user_id)[user_id][1][5] = user_input
                         temp_user_data.temp_data(user_id)[user_id][0] = 18
-                        bot.send_message(message.chat.id, 'Товар будет с привязкой? (да или нет)')
+                        bot.send_message(message.chat.id, 'Введите ссылку на дистрибутив')
                     else:
                         bot.send_message(message.chat.id, '❌Это не текст❌')
                 elif status == 13:
@@ -218,21 +218,57 @@ def main():
                     except:
                         bot.send_message(message.chat.id, '❌Это не число❌')
                 elif status == 18:
-                    try:
-                        print(user_input)
-                        if user_input.lower() == 'да':
-                            with_reference = True
-                            print(3)
-                        elif user_input.lower() == 'нет':
-                            with_reference = False
-                        else:
-                            raise
-                        temp_user_data.temp_data(user_id)[user_id][1][6] = with_reference
+                    if user_input is not None:
+                        temp_user_data.temp_data(user_id)[user_id][1][6] = user_input
+                        temp_user_data.temp_data(user_id)[user_id][0] = 19
+                        bot.send_message(message.chat.id, 'Введите ссылку на инструкцию по активации')
+                    else:
+                        bot.send_message(message.chat.id, '❌Вы ввели неверное значение❌')
+                elif status == 19:
+                    if user_input is not None:
+                        temp_user_data.temp_data(user_id)[user_id][1][7] = user_input
                         temp_user_data.temp_data(user_id)[user_id][0] = None
                         db_actions.add_one_product(temp_user_data.temp_data(user_id)[user_id][1])
                         bot.send_message(message.chat.id, '✅Товар успешно добавлен✅')
-                    except:
+                    else:
                         bot.send_message(message.chat.id, '❌Вы ввели неверное значение❌')
+                elif status == 20:
+                    if user_input is not None:
+                        db_actions.update_product(user_input, 'instruction_url',
+                                                  temp_user_data.temp_data(user_id)[user_id][2])
+                        temp_user_data.temp_data(user_id)[user_id][0] = None
+                        bot.send_message(user_id, '✅Операция завершена успешно✅')
+                    else:
+                        bot.send_message(user_id, '❌Это не текст❌')
+                elif status == 21:
+                    if user_input is not None:
+                        db_actions.update_product(user_input, 'distro_url',
+                                                  temp_user_data.temp_data(user_id)[user_id][2])
+                        temp_user_data.temp_data(user_id)[user_id][0] = None
+                        bot.send_message(user_id, '✅Операция завершена успешно✅')
+                    else:
+                        bot.send_message(user_id, '❌Это не текст❌')
+                elif status == 22:
+                    if user_input is not None:
+                        config.change_text_cat(user_input)
+                        temp_user_data.temp_data(user_id)[user_id][0] = None
+                        bot.send_message(message.chat.id, '✅Изменения успешно сохранены✅')
+                    else:
+                        bot.send_message(message.chat.id, '❌Это не текст❌')
+                elif status == 23:
+                    if user_input is not None:
+                        config.change_text_precat(user_input)
+                        temp_user_data.temp_data(user_id)[user_id][0] = None
+                        bot.send_message(message.chat.id, '✅Изменения успешно сохранены✅')
+                    else:
+                        bot.send_message(message.chat.id, '❌Это не текст❌')
+                elif status == 24:
+                    if user_input is not None:
+                        config.change_text_product(user_input)
+                        temp_user_data.temp_data(user_id)[user_id][0] = None
+                        bot.send_message(message.chat.id, '✅Изменения успешно сохранены✅')
+                    else:
+                        bot.send_message(message.chat.id, '❌Это не текст❌')
             else:
                 if message.text == 'Профиль👤':
                     bot.send_message(message.chat.id,
@@ -245,8 +281,8 @@ def main():
                     start_menu(message, buttons)
                 elif message.text == 'Каталог продуктов🗂':
                     categories = db_actions.get_categories()
-                    bot.send_message(message.chat.id, 'Выберите категорию✅',
-                                     reply_markup=buttons.categories_btns(categories))
+                    temp_user_data.temp_data(user_id)[user_id][6] = bot.send_message(message.chat.id, config.get_config()['text_category'],
+                                     reply_markup=buttons.categories_btns(categories)).message_id
                 elif message.text == 'Поддержка👨‍💻':
                     bot.send_message(message.chat.id, 'Выберите действие✅', reply_markup=buttons.support_btns())
                 elif message.text == 'Наши контакты👥':
@@ -297,6 +333,12 @@ def main():
                     elif command[10:] == '6':
                         temp_user_data.temp_data(user_id)[user_id][0] = 11
                         bot.send_message(call.message.chat.id, '🪪Введите новое превью🪪')
+                    elif command[10:] == '7':
+                        temp_user_data.temp_data(user_id)[user_id][0] = 20
+                        bot.send_message(call.message.chat.id, '🪪Введите новую ссылку на скачивание инструкции по активации🪪')
+                    elif command[10:] == '8':
+                        temp_user_data.temp_data(user_id)[user_id][0] = 21
+                        bot.send_message(call.message.chat.id, '🪪Введите новую ссылку на дистрибутив🪪')
                 elif command == 'changecontact':
                     bot.send_message(call.message.chat.id, '👤Введите новый контакт👤')
                     temp_user_data.temp_data(user_id)[user_id][0] = 13
@@ -309,6 +351,15 @@ def main():
                 elif command == 'changesale':
                     temp_user_data.temp_data(user_id)[user_id][0] = 16
                     bot.send_message(call.message.chat.id, '✉️Введите шаг скидки✉️')
+                elif command == 'changecat':
+                    temp_user_data.temp_data(user_id)[user_id][0] = 22
+                    bot.send_message(call.message.chat.id, '✉️Введите новый текст отображаемый в меню категории✉️')
+                elif command == 'changeprecat':
+                    temp_user_data.temp_data(user_id)[user_id][0] = 23
+                    bot.send_message(call.message.chat.id, '✉️Введите новый текст отображаемый в меню подкатегории✉️')
+                elif command == 'changeprod':
+                    temp_user_data.temp_data(user_id)[user_id][0] = 24
+                    bot.send_message(call.message.chat.id, '✉️Введите новый текст отображаемый в меню товаров✉️')
             if command[:10] == 'categories':
                 if command[10:] == '<main>':
                     bot.delete_message(user_id, message_id)
@@ -316,7 +367,7 @@ def main():
                 else:
                     temp_user_data.temp_data(user_id)[user_id][5] = command[10:]
                     subcategories = db_actions.get_sub_by_id_categories(command[10:])
-                    bot.edit_message_text('🪪Выберите подкатегорию🪪', user_id, message_id,
+                    bot.edit_message_text(config.get_config()['text_precategory'], user_id, message_id,
                                           reply_markup=buttons.subcategories_btns(subcategories))
             elif command[:13] == 'subcategories':
                 if command[13:] == '<back>':
@@ -327,28 +378,17 @@ def main():
                     bot.delete_message(user_id, message_id)
                     start_menu(call.message, buttons)
                 else:
-                    temp_user_data.temp_data(user_id)[user_id][6] = command[13:]
-                    bot.edit_message_text('🪪Выберите тип товара (с привязкой или без)🪪', user_id, message_id,
-                                          reply_markup=buttons.reference_btns())
-            elif command[:9] == 'reference':
-                if command[9:] == '<back>':
-                    subcategories = db_actions.get_sub_by_id_categories(temp_user_data.temp_data(user_id)[user_id][5])
-                    bot.edit_message_text('🪪Выберите подкатегорию🪪', user_id, message_id,
-                                          reply_markup=buttons.subcategories_btns(subcategories))
-                elif command[9:] == '<main>':
-                    bot.delete_message(user_id, message_id)
-                    start_menu(call.message, buttons)
-                else:
-                    products = db_actions.get_products_preview(temp_user_data.temp_data(user_id)[user_id][6], command[9:])
-                    bot.edit_message_text('🪪Выберите товар🪪', user_id, message_id,
+                    products = db_actions.get_products_preview(command[13:])
+                    bot.edit_message_text(config.get_config()['text_product'], user_id, message_id,
                                           reply_markup=buttons.products_btns(products))
             elif command[:8] == 'products':
                 if command[8:] == '<back>':
                     if temp_user_data.temp_data(user_id)[user_id][3] is not None:
                         bot.delete_message(user_id, temp_user_data.temp_data(user_id)[user_id][3])
                         temp_user_data.temp_data(user_id)[user_id][3] = None
-                    bot.edit_message_text('🪪Выберите тип товара (с привязкой или без)🪪', user_id, message_id,
-                                          reply_markup=buttons.reference_btns())
+                    subcategories = db_actions.get_sub_by_id_categories(temp_user_data.temp_data(user_id)[user_id][5])
+                    bot.edit_message_text(config.get_config()['text_precategory'], user_id, message_id,
+                                          reply_markup=buttons.subcategories_btns(subcategories))
                 elif command[8:] == '<main>':
                     if temp_user_data.temp_data(user_id)[user_id][3] is not None:
                         bot.delete_message(user_id, temp_user_data.temp_data(user_id)[user_id][3])
@@ -364,24 +404,40 @@ def main():
                                                                                    caption=f'💎ID товара: {command[8:]}\nКлючей осталось: {keys_left}\n📨Описание: {product[2]}\n💸Цена: {product[1]}',
                                                                                    chat_id=user_id,
                                                                                    reply_markup=buttons.buy_btns(
-                                                                                       command[8:])).message_id
+                                                                                       command[8:], product[3], product[4])).message_id
             elif command[:3] == 'buy':
-                keys = list()
-                product = db_actions.get_product_by_id_for_buy(command[3:])
-                for i in product[2].split(','):
-                    if i != '':
-                        keys.append(i)
-                if len(keys) != 0:
-                    key = random.choice(keys)
-                    keys.remove(key)
-                    db_actions.update_product(','.join(keys), 'key', command[3:])
-                    price = product[1] - (int(product[1] / 100) * ((product[1] // config.get_config()['step_sale']) * config.get_config()['percent_sale']))
-                    order_id = db_actions.add_sale([0, product[0], price, False, f'@{tg_nick}', user_id, key, command[3:]])
-                    order = payment.create_new_payment(f'Активационный ключ для {product[0]}', price, product[3], order_id)
-                    msg_id = bot.send_message(user_id, 'Оплатить заказ', reply_markup=buttons.pay_btn(price, order[0])).message_id
-                    threading.Thread(target=payment.shedule, args=(order_id, order[1], product[0], price, f'@{tg_nick}', user_id, msg_id, bot, key, command[3:])).start()
+                if command[3:] == '<back>':
+                    if temp_user_data.temp_data(user_id)[user_id][3] is not None:
+                        bot.delete_message(user_id, temp_user_data.temp_data(user_id)[user_id][3])
+                        temp_user_data.temp_data(user_id)[user_id][3] = None
+                    subcategories = db_actions.get_sub_by_id_categories(temp_user_data.temp_data(user_id)[user_id][5])
+                    bot.edit_message_text(config.get_config()['text_precategory'], user_id, temp_user_data.temp_data(user_id)[user_id][6],
+                                          reply_markup=buttons.subcategories_btns(subcategories))
+                elif command[3:] == '<main>':
+                    if temp_user_data.temp_data(user_id)[user_id][3] is not None:
+                        bot.delete_message(user_id, temp_user_data.temp_data(user_id)[user_id][3])
+                        temp_user_data.temp_data(user_id)[user_id][3] = None
+                    if temp_user_data.temp_data(user_id)[user_id][6] is not None:
+                        bot.delete_message(user_id, temp_user_data.temp_data(user_id)[user_id][6])
+                        temp_user_data.temp_data(user_id)[user_id][6] = None
+                    start_menu(call.message, buttons)
                 else:
-                    bot.answer_callback_query(call.id, "Ключей нет в наличии", show_alert=True)
+                    keys = list()
+                    product = db_actions.get_product_by_id_for_buy(command[3:])
+                    for i in product[2].split(','):
+                        if i != '':
+                            keys.append(i)
+                    if len(keys) != 0:
+                        key = random.choice(keys)
+                        keys.remove(key)
+                        db_actions.update_product(','.join(keys), 'key', command[3:])
+                        price = product[1] - (int(product[1] / 100) * ((product[1] // config.get_config()['step_sale']) * config.get_config()['percent_sale']))
+                        order_id = db_actions.add_sale([0, product[0], price, False, f'@{tg_nick}', user_id, key, command[3:]])
+                        order = payment.create_new_payment(f'Активационный ключ для {product[0]}', price, product[3], order_id)
+                        msg_id = bot.send_message(user_id, 'Оплатить заказ', reply_markup=buttons.pay_btn(price, order[0])).message_id
+                        threading.Thread(target=payment.shedule, args=(order_id, order[1], product[0], price, f'@{tg_nick}', user_id, msg_id, bot, key, command[3:])).start()
+                    else:
+                        bot.answer_callback_query(call.id, "Ключей нет в наличии", show_alert=True)
             elif command[:9] == 'purchased':
                 if command[9:] == '<main>':
                     if temp_user_data.temp_data(user_id)[user_id][4] is not None:

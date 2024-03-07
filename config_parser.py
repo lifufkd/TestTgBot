@@ -18,7 +18,7 @@ class ConfigParser:
         self.__default_pathes = {'Windows': 'C:\\', 'Linux': '/'}
         self.__default = {'tg_api': '', 'admins': [], 'db_file_name': '', 'FAQ': '', 'contacts': '', 'start_msg': '',
                           'step_sale': 500, 'percent_sale': 0, 'payment_api': '', 'payment_timeout': 15,
-                          'terminal_password': '', 'token': ''}
+                          'terminal_password': '', 'token': '', "text_category": "", "text_precategory": "", "text_product": ""}
         self.__current_config = None
         self.load_conf()
 
@@ -69,4 +69,16 @@ class ConfigParser:
 
     def change_percent(self, new_path):
         self.__current_config['percent_sale'] = new_path
+        self.create_conf(self.__current_config)
+
+    def change_text_cat(self, new_path):
+        self.__current_config['text_category'] = new_path
+        self.create_conf(self.__current_config)
+
+    def change_text_precat(self, new_path):
+        self.__current_config['text_precategory'] = new_path
+        self.create_conf(self.__current_config)
+
+    def change_text_product(self, new_path):
+        self.__current_config['text_product'] = new_path
         self.create_conf(self.__current_config)

@@ -41,7 +41,8 @@ class DB:
             category TEXT,
             preview TEXT,
             description TEXT,
-            with_reference BOOL
+            distro_url TEXT,
+            instruction_url TEXT
             )
             ''')
             self.__cursor.execute('''
