@@ -107,26 +107,30 @@ class DbAct:
         self.__db.db_write(f'INSERT INTO products (row_id, photo, price, key, description, category, preview, distro_url, instruction_url) VALUES ({new_id}, ?, ?, ?, ?, ?, ?, ?, ?)', datas)
 
     def update_products_from_excell(self, data):
-        check = self.__db.db_read(f'SELECT row_id FROM products', ())
+        index = list()
+        for i in self.__db.db_read(f'SELECT row_id FROM products', ()):
+            index.append(i[0])
         for i in data:
             try:
-                i[1] = int(i[1])
-                if tuple(i[0]) in check:
+                if i[0] in index:
+                    print(1)
                     old_key = self.__db.db_read(f'SELECT key FROM products WHERE row_id = ?', (i[0], ))[0][0]
                     new_keys = ','.join(set(old_key.split(',') + i[2].split(',')))
                     self.__db.db_write(f'UPDATE products SET price = ?, key = ?, preview = ?, category = ?, description = ?, distro_url = ?, instruction_url = ? WHERE row_id = {i[0]}', (i[1], new_keys, i[3], i[4], i[5], i[6], i[7]))
                 else:
+                    print(2)
                     self.__db.db_write(
                         f'INSERT INTO products (photo, row_id, price, key, preview, category, description, distro_url, instruction_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
                         (open('no-photo.png', 'rb').read(), i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7]))
             except:
                 pass
 
-
     def update_categories_from_excell(self, data):
-        check = self.__db.db_read(f'SELECT id FROM categories', ())
+        index = list()
+        for i in self.__db.db_read(f'SELECT id FROM categories', ()):
+            index.append(i[0])
         for i in data:
-            if tuple(i[0]) in check:
+            if i[0] in index:
                 self.__db.db_write(f'UPDATE categories SET name = ? WHERE id = {i[0]}', (i[1], ))
             else:
                 self.__db.db_write(f'INSERT INTO categories (id, name) VALUES (?, ?)', i)
@@ -137,10 +141,13 @@ class DbAct:
 
     def delete_category(self, row_id):
         self.__db.db_write(f'DELETE FROM categories WHERE id = ?', (row_id, ))
+
     def update_subcategories_from_excell(self, data):
-        check = self.__db.db_read(f'SELECT id FROM subcategories', ())
+        index = list()
+        for i in self.__db.db_read(f'SELECT id FROM subcategories', ()):
+            index.append(i[0])
         for i in data:
-            if tuple(i[0]) in check:
+            if i[0] in index:
                 self.__db.db_write(f'UPDATE subcategories SET id_categories = ?, name = ? WHERE id = {i[0]}', (i[1], i[2]))
             else:
                 self.__db.db_write(f'INSERT INTO subcategories (id, id_categories, name) VALUES (?, ?, ?)', i)

@@ -55,7 +55,7 @@ def main():
         bot.send_message(message.chat.id,
                          f'Привет {message.from_user.first_name}👋\n'
                          f'{config.get_config()["start_msg"]}',
-                         reply_markup=buttons.msg_buttons())
+                         reply_markup=buttons.msg_buttons(), parse_mode='HTML')
 
     @bot.message_handler(commands=['admin'])
     def tovar_msg(message):
@@ -66,7 +66,7 @@ def main():
             if db_actions.user_is_admin(user_id):
                 if command == 'admin':
                     bot.send_message(message.chat.id, f'Здравствуйте, {message.from_user.first_name}!\nТекущий шаг скидки {config.get_config()["step_sale"]}, процент за шаг {config.get_config()["percent_sale"]}',
-                                     reply_markup=buttons.admin_btns())
+                                     reply_markup=buttons.admin_btns(), parse_mode='HTML')
         else:
             bot.send_message(message.chat.id, 'Введите /start для запуска бота')
 
@@ -312,7 +312,7 @@ def main():
                 elif message.text == 'Каталог продуктов🗂':
                     categories = db_actions.get_categories()
                     temp_user_data.temp_data(user_id)[user_id][6] = bot.send_message(message.chat.id, config.get_config()['text_category'],
-                                     reply_markup=buttons.categories_btns(categories)).message_id
+                                     reply_markup=buttons.categories_btns(categories), parse_mode='HTML').message_id
                 elif message.text == 'Поддержка👨‍💻':
                     temp_user_data.temp_data(user_id)[user_id][7] = bot.send_message(message.chat.id, 'Выберите действие✅', reply_markup=buttons.support_btns()).message_id
         else:
@@ -406,19 +406,19 @@ def main():
                     temp_user_data.temp_data(user_id)[user_id][5] = command[10:]
                     subcategories = db_actions.get_sub_by_id_categories(command[10:])
                     bot.edit_message_text(config.get_config()['text_precategory'], user_id, message_id,
-                                          reply_markup=buttons.subcategories_btns(subcategories))
+                                          reply_markup=buttons.subcategories_btns(subcategories), parse_mode='HTML')
             elif command[:13] == 'subcategories':
                 if command[13:] == '<back>':
                     categories = db_actions.get_categories()
                     bot.edit_message_text('🪪Выберите категорию🪪', user_id, message_id,
-                                          reply_markup=buttons.categories_btns(categories))
+                                          reply_markup=buttons.categories_btns(categories), parse_mode='HTML')
                 elif command[13:] == '<main>':
                     bot.delete_message(user_id, message_id)
                     start_menu(call.message, buttons)
                 else:
                     products = db_actions.get_products_preview(command[13:])
                     bot.edit_message_text(config.get_config()['text_product'], user_id, message_id,
-                                          reply_markup=buttons.products_btns(products))
+                                          reply_markup=buttons.products_btns(products), parse_mode='HTML')
             elif command[:8] == 'products':
                 if command[8:] == '<back>':
                     if temp_user_data.temp_data(user_id)[user_id][3] is not None:
@@ -426,7 +426,7 @@ def main():
                         temp_user_data.temp_data(user_id)[user_id][3] = None
                     subcategories = db_actions.get_sub_by_id_categories(temp_user_data.temp_data(user_id)[user_id][5])
                     bot.edit_message_text(config.get_config()['text_precategory'], user_id, message_id,
-                                          reply_markup=buttons.subcategories_btns(subcategories))
+                                          reply_markup=buttons.subcategories_btns(subcategories), parse_mode='HTML')
                 elif command[8:] == '<main>':
                     if temp_user_data.temp_data(user_id)[user_id][3] is not None:
                         bot.delete_message(user_id, temp_user_data.temp_data(user_id)[user_id][3])
@@ -452,9 +452,9 @@ def main():
                     temp_user_data.temp_data(user_id)[user_id][7] = None
                 start_menu(call.message, buttons)
             elif command == 'our_contacts':
-                bot.send_message(user_id, f'Наши контакты:\n{config.get_config()["contacts"]}')
+                bot.send_message(user_id, f'Наши контакты:\n{config.get_config()["contacts"]}', parse_mode='HTML')
             elif command == 'FAQ':
-                bot.send_message(user_id, f'FAQ:\n{config.get_config()["FAQ"]}')
+                bot.send_message(user_id, f'FAQ:\n{config.get_config()["FAQ"]}', parse_mode='HTML')
             elif command[:3] == 'buy':
                 if command[3:] == '<back>':
                     if temp_user_data.temp_data(user_id)[user_id][3] is not None:
@@ -462,7 +462,7 @@ def main():
                         temp_user_data.temp_data(user_id)[user_id][3] = None
                     subcategories = db_actions.get_sub_by_id_categories(temp_user_data.temp_data(user_id)[user_id][5])
                     bot.edit_message_text(config.get_config()['text_precategory'], user_id, temp_user_data.temp_data(user_id)[user_id][6],
-                                          reply_markup=buttons.subcategories_btns(subcategories))
+                                          reply_markup=buttons.subcategories_btns(subcategories), parse_mode='HTML')
                 elif command[3:] == '<main>':
                     if temp_user_data.temp_data(user_id)[user_id][3] is not None:
                         bot.delete_message(user_id, temp_user_data.temp_data(user_id)[user_id][3])

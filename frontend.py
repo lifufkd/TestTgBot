@@ -4,6 +4,7 @@
 #               zzsxd               #
 #####################################
 from telebot import types
+from textwrap import wrap
 #####################################
 
 
@@ -20,18 +21,10 @@ class Bot_inline_btns:
 
     def msg_buttons(self):
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        product_catalog = types.KeyboardButton('Каталог продуктов🗂')
-        profile = types.KeyboardButton('Профиль👤')
-        support = types.KeyboardButton('Поддержка👨‍💻')
+        product_catalog = types.KeyboardButton('🗂 Каталог продуктов')
+        profile = types.KeyboardButton('👤 Профиль')
+        support = types.KeyboardButton('👨‍💻 Поддержка')
         keyboard.add(product_catalog, profile, support)
-        return keyboard
-
-    def tovar_bnts(self):
-        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        buy = types.KeyboardButton('Купить💎')
-        download_dist = types.KeyboardButton('Скачать дистрибутив🖥')
-        instruction = types.KeyboardButton('Инструкция по активации✉️')
-        keyboard.add(buy, download_dist, instruction)
         return keyboard
 
     def podcategories_btns(self):
@@ -47,22 +40,22 @@ class Bot_inline_btns:
 
     def profile_btns(self):
         markup = types.InlineKeyboardMarkup(row_width=1)
-        my_buys = types.InlineKeyboardButton('Мои покупки🛒' , callback_data='my_buys')
-        back = types.InlineKeyboardButton('Назад🔙' , callback_data='back')
+        my_buys = types.InlineKeyboardButton('🛒 Мои покупки' , callback_data='my_buys')
+        back = types.InlineKeyboardButton('🔙 Назад' , callback_data='back')
         markup.add(my_buys, back)
         return markup
 
     def support_btns(self):
         markup = types.InlineKeyboardMarkup(row_width=1)
-        my_buys = types.InlineKeyboardButton('Наши контакты👥', callback_data='our_contacts')
-        FAQ = types.InlineKeyboardButton('FAQℹ️', callback_data='FAQ')
-        back = types.InlineKeyboardButton('Назад🔙', callback_data='back')
+        my_buys = types.InlineKeyboardButton('👥 Наши контакты', callback_data='our_contacts')
+        FAQ = types.InlineKeyboardButton('ℹ️ FAQ', callback_data='FAQ')
+        back = types.InlineKeyboardButton('🔙 Назад', callback_data='back')
         markup.add(my_buys, FAQ, back)
         return markup
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        our_contacts = types.KeyboardButton('Наши контакты👥')
-        FAQ = types.KeyboardButton('FAQℹ️')
-        back = types.KeyboardButton('Назад🔙')
+        our_contacts = types.KeyboardButton('👥 Наши контакты')
+        FAQ = types.KeyboardButton('ℹ️ FAQ')
+        back = types.KeyboardButton('🔙 Назад')
         keyboard.add(our_contacts, FAQ, back)
         return keyboard
 
@@ -85,7 +78,7 @@ class Bot_inline_btns:
         return self.__markup
 
     def categories_btns(self, data):
-        data.append(('<main>', 'В главное меню'))
+        data.append(('<main>', '⚙️ В главное меню'))
         markup = types.InlineKeyboardMarkup(row_width=1)
         for i in data:
             btn = types.InlineKeyboardButton(i[1], callback_data=f'categories{i[0]}')
@@ -101,8 +94,8 @@ class Bot_inline_btns:
         return markup
 
     def subcategories_btns(self, data):
-        data.append(('<back>', 'назад'))
-        data.append(('<main>', 'В главное меню'))
+        data.append(('<back>', '🔙 назад'))
+        data.append(('<main>', '⚙️ В главное меню'))
         markup = types.InlineKeyboardMarkup(row_width=1)
         for i in data:
             btn = types.InlineKeyboardButton(i[1], callback_data=f'subcategories{i[0]}')
@@ -111,7 +104,7 @@ class Bot_inline_btns:
 
     def reference_btns(self):
         data = list()
-        data.extend([('1', 'Да'), ('0', 'Нет'), ('<back>', 'назад'), ('<main>', 'В главное меню')])
+        data.extend([('1', 'Да'), ('0', 'Нет'), ('<back>', '🔙 назад'), ('<main>', '⚙️ В главное меню')])
         markup = types.InlineKeyboardMarkup(row_width=1)
         for i in data:
             btn = types.InlineKeyboardButton(i[1], callback_data=f'reference{i[0]}')
@@ -119,8 +112,8 @@ class Bot_inline_btns:
         return markup
 
     def products_btns(self, data):
-        data.append(('<back>', 'назад'))
-        data.append(('<main>', 'В главное меню'))
+        data.append(('<back>', '🔙 назад'))
+        data.append(('<main>', '⚙️ В главное меню'))
         markup = types.InlineKeyboardMarkup(row_width=1)
         for i in data:
             if i[0] not in ['<back>', '<main>']:
@@ -132,29 +125,29 @@ class Bot_inline_btns:
 
     def buy_btns(self, id_product, instuction_url, distro_url):
         markup = types.InlineKeyboardMarkup(row_width=1)
-        btn1 = types.InlineKeyboardButton('Купить', callback_data=f'buy{id_product}')
-        btn2 = types.InlineKeyboardButton('Скачать дистрибутив', url=distro_url)
-        btn3 = types.InlineKeyboardButton('Инструкция по активации', url=instuction_url)
-        btn4 = types.InlineKeyboardButton('Назад', callback_data=f'buy<back>')
-        btn5 = types.InlineKeyboardButton('В главное меню', callback_data=f'buy<main>')
+        btn1 = types.InlineKeyboardButton('💵 Купить', callback_data=f'buy{id_product}')
+        btn2 = types.InlineKeyboardButton('💾 Скачать дистрибутив', url=distro_url)
+        btn3 = types.InlineKeyboardButton('📚 Инструкция по активации', url=instuction_url)
+        btn4 = types.InlineKeyboardButton('🔙 Назад', callback_data=f'buy<back>')
+        btn5 = types.InlineKeyboardButton('⚙️ В главное меню', callback_data=f'buy<main>')
         markup.add(btn1, btn2, btn3, btn4, btn5)
         return markup
 
     def change_btns(self):
         markup = types.InlineKeyboardMarkup(row_width=1)
-        btn1 = types.InlineKeyboardButton('Цену', callback_data=f'сhangecart1')
-        btn2 = types.InlineKeyboardButton('Фото', callback_data=f'сhangecart2')
-        btn3 = types.InlineKeyboardButton('Ключ', callback_data=f'сhangecart3')
-        btn4 = types.InlineKeyboardButton('Подкатегорию', callback_data=f'сhangecart4')
-        btn5 = types.InlineKeyboardButton('Описание', callback_data=f'сhangecart5')
-        btn6 = types.InlineKeyboardButton('Превью', callback_data=f'сhangecart6')
-        btn7 = types.InlineKeyboardButton('Инструкцию по активации', callback_data=f'сhangecart7')
-        btn8 = types.InlineKeyboardButton('Ссылку на дистрибутив', callback_data=f'сhangecart8')
+        btn1 = types.InlineKeyboardButton(f'💵 Цену', callback_data=f'сhangecart1')
+        btn2 = types.InlineKeyboardButton('🌟 Фото', callback_data=f'сhangecart2')
+        btn3 = types.InlineKeyboardButton('🔧 Ключ', callback_data=f'сhangecart3')
+        btn4 = types.InlineKeyboardButton('📊 Подкатегорию', callback_data=f'сhangecart4')
+        btn5 = types.InlineKeyboardButton('📈 Описание', callback_data=f'сhangecart5')
+        btn6 = types.InlineKeyboardButton('📁 Превью', callback_data=f'сhangecart6')
+        btn7 = types.InlineKeyboardButton('📚 Инструкцию по активации', callback_data=f'сhangecart7')
+        btn8 = types.InlineKeyboardButton('💾 Ссылку на дистрибутив', callback_data=f'сhangecart8')
         markup.add(btn1, btn2, btn3, btn4, btn5, btn6, btn7, btn8)
         return markup
 
     def purchased_btns(self, data):
-        data.append(('<main>', 'В главное меню'))
+        data.append(('<main>', '⚙️ В главное меню'))
         markup = types.InlineKeyboardMarkup(row_width=1)
         for i in data:
             btn = types.InlineKeyboardButton(i[1], callback_data=f'purchased{i[0]}')
@@ -163,7 +156,7 @@ class Bot_inline_btns:
 
     def pay_btn(self, price, url):
         markup = types.InlineKeyboardMarkup(row_width=1)
-        btn = types.InlineKeyboardButton(f'Оплатить {price}₽', url=url)
+        btn = types.InlineKeyboardButton(f'💵 Оплатить {price}₽', url=url)
         markup.add(btn)
         return markup
 
