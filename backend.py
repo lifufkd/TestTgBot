@@ -4,7 +4,6 @@
 #               zzsxd               #
 #####################################
 import time
-
 import gspread
 import hashlib
 import requests

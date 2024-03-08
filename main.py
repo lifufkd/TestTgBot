@@ -305,15 +305,16 @@ def main():
                     else:
                         bot.send_message(message.chat.id, '❌Это не текст❌')
             else:
-                if message.text == 'Профиль👤':
+                if message.text == '👤 Профиль':
+                    print(111)
                     temp_user_data.temp_data(user_id)[user_id][7] = bot.send_message(message.chat.id,
                                      f'Привет, {message.from_user.first_name}!\nВаш ID: {user_id}',
                                      reply_markup=buttons.profile_btns()).message_id
-                elif message.text == 'Каталог продуктов🗂':
+                elif message.text == '🗂 Каталог продуктов':
                     categories = db_actions.get_categories()
                     temp_user_data.temp_data(user_id)[user_id][6] = bot.send_message(message.chat.id, config.get_config()['text_category'],
                                      reply_markup=buttons.categories_btns(categories), parse_mode='HTML').message_id
-                elif message.text == 'Поддержка👨‍💻':
+                elif message.text == '👨‍💻 Поддержка':
                     temp_user_data.temp_data(user_id)[user_id][7] = bot.send_message(message.chat.id, 'Выберите действие✅', reply_markup=buttons.support_btns()).message_id
         else:
             bot.send_message(message.chat.id, 'Введите /start для запуска бота')
