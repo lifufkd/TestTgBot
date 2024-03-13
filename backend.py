@@ -94,7 +94,7 @@ class DbAct:
         s = ''
         data = self.__db.db_read(f'SELECT time, key, price FROM sales WHERE product = ? AND payment_status = ?', (sale_id, True))
         for i in data:
-            s += f"Время покупки: {datetime.utcfromtimestamp(i[0]).strftime('%d.%m.%Y %H:%M:%S')}\nКлюч: {i[1]}\nСумма покупки: {i[2]} ₽\n\n"
+            s += f"Время покупки: {datetime.fromtimestamp(i[0]).strftime('%d.%m.%Y %H:%M:%S')}\nКлюч: {i[1]}\nСумма покупки: {i[2]} ₽\n\n"
         return s
 
     def add_one_product(self, datas):
@@ -112,12 +112,8 @@ class DbAct:
         for i in data:
             try:
                 if i[0] in index:
-                    print(1)
-                    old_key = self.__db.db_read(f'SELECT key FROM products WHERE row_id = ?', (i[0], ))[0][0]
-                    new_keys = ','.join(set(old_key.split(',') + i[2].split(',')))
-                    self.__db.db_write(f'UPDATE products SET price = ?, key = ?, preview = ?, category = ?, description = ?, distro_url = ?, instruction_url = ? WHERE row_id = {i[0]}', (i[1], new_keys, i[3], i[4], i[5], i[6], i[7]))
+                    self.__db.db_write(f'UPDATE products SET price = ?, key = ?, preview = ?, category = ?, description = ?, distro_url = ?, instruction_url = ? WHERE row_id = {i[0]}', (i[1], i[2], i[3], i[4], i[5], i[6], i[7]))
                 else:
-                    print(2)
                     self.__db.db_write(
                         f'INSERT INTO products (photo, row_id, price, key, preview, category, description, distro_url, instruction_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
                         (open('no-photo.png', 'rb').read(), i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7]))
@@ -236,48 +232,52 @@ class Payment:
         c = 0
         keys = list()
         while True:
-            status = self.check_payment(payment_id, order_id)
-            c += 1
-            if c >= self.__config.get_config()['payment_timeout'] * 60:
-                timee = time.time()
-                self.__db_act.update_sale(timee, False, order_id)
-                self.__sheet.add_sale(
-                    [datetime.utcfromtimestamp(timee).strftime('%d.%m.%Y %H:%M:%S'), name, price, 'Отклонена',
-                     user_id, 'Нет'])
-                product = self.__db_act.get_product_by_id_for_buy(product_id)
-                for i in product[2].split(','):
-                    if i != '':
-                        keys.append(i)
-                keys.append(key)
-                self.__db_act.update_product(','.join(keys), 'key', product_id)
-                bot.delete_message(user_id, msg_id)
-                bot.send_message(user_id, "Время на оплату истекло, попробуйте ещё раз")
-                break # end deny pay
-            elif status in ['AUTH_FAIL', 'REJECTED']:
-                timee = time.time()
-                self.__db_act.update_sale(timee, False, order_id)
-                self.__sheet.add_sale(
-                    [datetime.utcfromtimestamp(timee).strftime('%d.%m.%Y %H:%M:%S'), name, price, 'Отклонена',
-                     user_id, 'Нет'])
-                product = self.__db_act.get_product_by_id_for_buy(product_id)
-                for i in product[2].split(','):
-                    if i != '':
-                        keys.append(i)
-                keys.append(key)
-                self.__db_act.update_product(','.join(keys), 'key', product_id)
-                bot.delete_message(user_id, msg_id)
-                bot.send_message(user_id, "Оплата не успешна, попробуйте ещё раз")
-            elif status in ['CONFIRMED', 'AUTHORIZED']:
-                timee = time.time()
-                self.__db_act.update_sale(timee, True, order_id)
-                self.__sheet.add_sale(
-                    [datetime.utcfromtimestamp(timee).strftime('%d.%m.%Y %H:%M:%S'), name, price, 'Успешна',
-                     user_id, key])
-                bot.delete_message(user_id, msg_id)
-                bot.send_message(user_id,
-                                 f'Оплата совершена успешно, полная информация о вашей покупке продублирована в '
-                                 f'Профиль>Мои покупки\nВаш лицензионный ключ: {key}')
-                break
+            try:
+                c += 1
+                status = self.check_payment(payment_id, order_id)
+                if c >= self.__config.get_config()['payment_timeout'] * 60:
+                    timee = time.time()
+                    self.__db_act.update_sale(timee, False, order_id)
+                    self.__sheet.add_sale(
+                        [datetime.fromtimestamp(timee).strftime('%d.%m.%Y %H:%M:%S'), name, price, 'Время на оплату истекло',
+                         user_id, 'Нет'])
+                    product = self.__db_act.get_product_by_id_for_buy(product_id)
+                    for i in product[2].split(','):
+                        if i != '':
+                            keys.append(i)
+                    keys.append(key)
+                    self.__db_act.update_product(','.join(keys), 'key', product_id)
+                    bot.delete_message(user_id, msg_id)
+                    bot.send_message(user_id, "Время на оплату истекло, попробуйте ещё раз")
+                    break # end deny pay
+                elif status in ['AUTH_FAIL', 'REJECTED']:
+                    timee = time.time()
+                    self.__db_act.update_sale(timee, False, order_id)
+                    self.__sheet.add_sale(
+                        [datetime.fromtimestamp(timee).strftime('%d.%m.%Y %H:%M:%S'), name, price, 'Отклонена',
+                         user_id, 'Нет'])
+                    product = self.__db_act.get_product_by_id_for_buy(product_id)
+                    for i in product[2].split(','):
+                        if i != '':
+                            keys.append(i)
+                    keys.append(key)
+                    self.__db_act.update_product(','.join(keys), 'key', product_id)
+                    bot.delete_message(user_id, msg_id)
+                    bot.send_message(user_id, "Оплата не успешна, попробуйте ещё раз")
+                    break
+                elif status in ['CONFIRMED', 'AUTHORIZED']:
+                    timee = time.time()
+                    self.__db_act.update_sale(timee, True, order_id)
+                    self.__sheet.add_sale(
+                        [datetime.fromtimestamp(timee).strftime('%d.%m.%Y %H:%M:%S'), name, price, 'Успешна',
+                         user_id, key])
+                    bot.delete_message(user_id, msg_id)
+                    bot.send_message(user_id,
+                                     f'Оплата совершена успешно, полная информация о вашей покупке продублирована в '
+                                     f'Профиль>Мои покупки\nВаш лицензионный ключ: {key}')
+                    break
+            except:
+                pass
             time.sleep(1)
 
     def get_sha_key(self):
@@ -303,7 +303,7 @@ class Payment:
             "TerminalKey": self.__config.get_config()['token'],
             "Amount": price*100,
             "OrderId": order_id,
-            "Description": desc,
+            "Description": f"Покупка товара {name}",
             "Token": self.get_sha_key(),
             "DATA": {
                 "Email": "ваша@почта.ru"},

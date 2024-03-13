@@ -6,7 +6,6 @@
 from datetime import datetime
 import os
 import platform
-import time
 import telebot
 import random
 import threading
@@ -42,7 +41,7 @@ def get_category():
     return s
 
 def start_menu(message, buttons):
-    bot.send_sticker(message.chat.id, 'CAACAgIAAxkBAAED4RZl5OeQu_YY_4FY1bfDeW-bfZobdQACXEYAAshAgEmc8EyBI3PWVDQE', reply_markup=buttons.msg_buttons())
+    bot.send_sticker(message.chat.id, 'CAACAgIAAxkBAAELpDNl61pdCujgegvj-eqqoZo_ZmgQjgACmyQAAmodwUvN4W6DzjvjVzQE', reply_markup=buttons.msg_buttons())
 
 
 def main():
@@ -306,7 +305,6 @@ def main():
                         bot.send_message(message.chat.id, '❌Это не текст❌')
             else:
                 if message.text == '👤 Профиль':
-                    print(111)
                     temp_user_data.temp_data(user_id)[user_id][7] = bot.send_message(message.chat.id,
                                      f'Привет, {message.from_user.first_name}!\nВаш ID: {user_id}',
                                      reply_markup=buttons.profile_btns()).message_id
