@@ -16,9 +16,7 @@ class ConfigParser:
         super(ConfigParser, self).__init__()
         self.__file_path = file_path
         self.__default_pathes = {'Windows': 'C:\\', 'Linux': '/'}
-        self.__default = {'tg_api': '', 'admins': [], 'db_file_name': '', 'FAQ': '', 'contacts': '', 'start_msg': '',
-                          'step_sale': 500, 'percent_sale': 0, 'payment_api': '', 'payment_timeout': 15,
-                          'terminal_password': '', 'token': '', "text_category": "", "text_precategory": "", "text_product": ""}
+        self.__default = {'tg_api': '', 'admins': []}
         self.__current_config = None
         self.load_conf()
 
@@ -38,47 +36,3 @@ class ConfigParser:
 
     def get_config(self):
         return self.__current_config
-
-    def update_faq(self, new_path):
-        self.__current_config['FAQ'] = new_path
-        self.create_conf(self.__current_config)
-
-    def update_contacts(self, new_path):
-        self.__current_config['contacts'] = new_path
-        self.create_conf(self.__current_config)
-
-    def update_start_msg(self, new_path):
-        self.__current_config['start_msg'] = new_path
-        self.create_conf(self.__current_config)
-
-    def change_contacts(self, new_path):
-        self.__current_config['contacts'] = new_path
-        self.create_conf(self.__current_config)
-
-    def change_faq(self, new_path):
-        self.__current_config['FAQ'] = new_path
-        self.create_conf(self.__current_config)
-
-    def change_start_msg(self, new_path):
-        self.__current_config['start_msg'] = new_path
-        self.create_conf(self.__current_config)
-
-    def change_step(self, new_path):
-        self.__current_config['step_sale'] = new_path
-        self.create_conf(self.__current_config)
-
-    def change_percent(self, new_path):
-        self.__current_config['percent_sale'] = new_path
-        self.create_conf(self.__current_config)
-
-    def change_text_cat(self, new_path):
-        self.__current_config['text_category'] = new_path
-        self.create_conf(self.__current_config)
-
-    def change_text_precat(self, new_path):
-        self.__current_config['text_precategory'] = new_path
-        self.create_conf(self.__current_config)
-
-    def change_text_product(self, new_path):
-        self.__current_config['text_product'] = new_path
-        self.create_conf(self.__current_config)

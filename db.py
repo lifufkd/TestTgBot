@@ -27,48 +27,44 @@ class DB:
             first_name TEXT,
             last_name TEXT,
             nick_name TEXT,
-            sales INTEGER,
             is_admin BOOL,
             UNIQUE(user_id)
             )
             ''')
             self.__cursor.execute('''
-            CREATE TABLE products(
-            row_id TEXT,
-            photo BLOB,
-            price INTEGER,
-            key TEXT,
-            category TEXT,
-            preview TEXT,
-            description TEXT,
-            distro_url TEXT,
-            instruction_url TEXT
-            )
-            ''')
-            self.__cursor.execute('''
-            CREATE TABLE sales(
-            row_id INTEGER primary key autoincrement not null,
-            time INTEGER,
+            CREATE TABLE tests(
+            row_id INTEGER,
             name TEXT,
-            price INTEGER,
-            payment_status BOOL,  
-            nick_tg TEXT,
-            user_id INTEGER,
-            key TEXT,
-            product INTEGER
+            description TEXT,
+            text_start_btn TEXT,
+            text_continue_btn TEXT,
+            before_test TEXT,
+            after_question TEXT,
+            after_test TEXT,
+            questions TEXT
             )
             ''')
             self.__cursor.execute('''
-            CREATE TABLE categories(
-            id TEXT,
-            name TEXT
+            CREATE TABLE questions(
+            row_id INTEGER,
+            name TEXT,
+            quest1 TEXT,
+            quest2 TEXT,
+            quest3 TEXT,
+            quest4 TEXT,
+            answer_description TEXT,
+            correct INTEGER,
+            id_test TEXT
             )
             ''')
             self.__cursor.execute('''
-            CREATE TABLE subcategories(
-            id TEXT,
-            id_categories TEXT,
-            name TEXT
+            CREATE TABLE statistic(
+            row_id INTEGER,
+            test_name TEXT,
+            date INTEGER,
+            progress INTEGER, 
+            marks INTEGER,
+            user_nick TEXT
             )
             ''')
             self.__db.commit()
