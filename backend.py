@@ -3,6 +3,7 @@
 #                SBR                #
 #               zzsxd               #
 #####################################
+import json
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
@@ -16,7 +17,7 @@ class TempUserData:
 
     def temp_data(self, user_id):
         if user_id not in self.__user_data.keys():
-            self.__user_data.update({user_id: [None, [None, None, None, None, None, None, None, None], None, None, None, None, None, None]}) # 1 - status, 2 - m
+            self.__user_data.update({user_id: [None, [], None, None, None]}) # 1 - status, 2 - m
         return self.__user_data
 
 
@@ -38,18 +39,30 @@ class Excell:
         data = worksheet.get_all_values()
         return data[1:]
 
-    def categories_excell(self):
-        worksheet = self.__sheet.get_worksheet(2) # 1 - третья страница для парсинга
+    def get_names_lists(self):
+        worksheet = self.__sheet.worksheets()
+        number_of_sheets = len(worksheet)
+        return number_of_sheets - 2, worksheet
+
+    def questions_excell(self, index):
+        worksheet = self.__sheet.get_worksheet(index) # 1 - третья страница для парсинга
+        data = worksheet.get_all_values()[1:]
+        return data
+
+    def get_statistic_excell(self):
+        worksheet = self.__sheet.get_worksheet(1) # 1 - четвертая страница для парсинга
         data = worksheet.get_all_values()
         return data[1:]
 
-    def subcategories_excell(self):
-        worksheet = self.__sheet.get_worksheet(3) # 1 - четвертая страница для парсинга
-        data = worksheet.get_all_values()
-        return data[1:]
+    def update_statistic_excell(self, data, index):
+        worksheet = self.__sheet.get_worksheet(1)  # 1 - четвертая страница для парсинга
+        cell_list = worksheet.range(f'A{index}:F{index}')
+        for i in range(len(cell_list)):
+            cell_list[i].value = data[i]
+        worksheet.update_cells(cell_list)
 
-    def add_sale(self, values):
-        worksheet = self.__sheet.get_worksheet(0)
+    def add_stat(self, values):
+        worksheet = self.__sheet.get_worksheet(1)
         lastRow = len(worksheet.get_all_values()) + 1
         cell_list = worksheet.range(f'A{lastRow}:F{lastRow}')
         for i in range(len(cell_list)):
@@ -58,10 +71,11 @@ class Excell:
 
 
 class DbAct:
-    def __init__(self, db, config):
+    def __init__(self, db, config, sheet):
         super(DbAct, self).__init__()
         self.__db = db
         self.__config = config
+        self.__sheet = sheet
 
     def add_user(self, user_id, first_name, last_name, nick_name):
         if not self.user_is_existed(user_id):
@@ -103,17 +117,111 @@ class DbAct:
                     f'INSERT INTO tests (row_id, name, description, text_start_btn, text_continue_btn, before_test, after_question, after_test, questions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
                     (i[0], i[1], i[2], i[4], i[10], i[6], i[9], i[11], i[5]))
 
+    def update_questions(self):
+        index = list()
+        for i in self.__db.db_read(f'SELECT row_id, id_test FROM questions', ()):
+            index.append(i)
+        quanity, names = self.__sheet.get_names_lists()
+        for g in range(quanity):
+            data = self.__sheet.questions_excell(g+2)
+            for i in data:
+                enc_answers = json.dumps(i[4:])
+                if (i[0], names[g+2].title) in index:
+                    self.__db.db_write(
+                        f'UPDATE questions SET name = ?, questions = ?, answer_description = ?, correct = ?, id_test = ? WHERE row_id = {i[0]} AND id_test = "{names[g+2].title}"',
+                        (i[1], enc_answers, i[2], i[3], names[g+2].title))
+                else:
+                    self.__db.db_write(
+                        f'INSERT INTO questions (row_id, name, questions, answer_description, correct, id_test) VALUES (?, ?, ?, ?, ?, ?)',
+                        (i[0], i[1], enc_answers, i[2], i[3], names[g+2].title))
 
+    def get_all_tests(self):
+        data = self.__db.db_read('SELECT row_id, name FROM tests', ())
+        return data
 
-
-
-    def add_one_product(self, datas):
-        data = self.__db.db_read('SELECT MAX(row_id) FROM products', ())
+    def pre_test_data(self, test_id):
+        data = self.__db.db_read('SELECT name, before_test, description, text_start_btn, questions FROM tests WHERE row_id = ?', (test_id, ))
         if len(data) > 0:
-            new_id = int(data[0][0]) + 1
+            data = data[0]
+            quanity = self.__db.db_read('SELECT COUNT(*) FROM questions WHERE id_test = ?', (data[4],))[0][0]
+            return quanity, data[:4]
         else:
-            new_id = 1
-        self.__db.db_write(f'INSERT INTO products (row_id, photo, price, key, description, category, preview, distro_url, instruction_url) VALUES ({new_id}, ?, ?, ?, ?, ?, ?, ?, ?)', datas)
+            return None, None
+
+    def get_question(self, quest_id):
+        quanity = self.__db.db_read('SELECT name, questions FROM questions WHERE row_id = ?', (quest_id, ))[0]
+        quests = json.loads(quanity[1])
+        return quanity[0], quests
+
+    def get_after_quest(self, id_test, id_quest):
+        test = self.__db.db_read('SELECT after_question, text_continue_btn FROM tests WHERE row_id = ?', (id_test,))[0]
+        quest = self.__db.db_read('SELECT answer_description FROM questions WHERE row_id = ?', (id_quest,))[0][0]
+        return test, quest
+
+    def get_questions_id_by_test_id(self, test_id):
+        return self.__db.db_read('SELECT questions FROM tests WHERE row_id = ?', (test_id,))[0][0]
+
+    def get_test_name_by_id(self, test_id):
+        data = self.__db.db_read('SELECT name FROM tests WHERE row_id = ?', (test_id, ))[0][0]
+        return data
+
+    def get_id_quest_by_master(self, id_test):
+        out = list()
+        pr = self.get_questions_id_by_test_id(id_test)
+        quanity = self.__db.db_read('SELECT row_id FROM questions WHERE id_test = ?', (pr,))
+        for i in quanity:
+            out.append(i[0])
+        return out
+
+    def check_correct(self, question_id, index):
+        correct = self.__db.db_read('SELECT correct FROM questions WHERE row_id = ?', (question_id,))[0][0]
+        if index == str(correct):
+            return True
+
+    def get_marks_by_stat(self, test_name, user_nick):
+        data = self.__db.db_read('SELECT marks FROM statistic WHERE test_name = ? AND user_nick = ?', (test_name, user_nick))
+        print(test_name)
+        if len(data) > 0:
+            return data[0][0]
+        else:
+            return 0
+
+    def get_test_name_by_ids(self, id):
+        return self.__db.db_read('SELECT name FROM tests WHERE row_id = ?',
+                                 (id, ))[0][0]
+
+
+    def add_entry_statistic(self, datas, test_name, user_nick):
+        data = self.__db.db_read('SELECT COUNT(*) FROM statistic WHERE test_name = ? AND user_nick = ?', (test_name, user_nick))[0][0]
+        if data == 0:
+            self.__db.db_write(
+                f'INSERT INTO statistic (date, progress, marks, test_name, user_nick) VALUES (?, ?, ?, ?, ?)',
+                (datas[0], datas[1], datas[2], test_name, user_nick))
+            row = self.__db.db_read('SELECT MAX(row_id) FROM statistic', ())[0][0]
+        else:
+            self.__db.db_write(
+                f'UPDATE statistic SET date = ?, progress = ?, marks = ? WHERE test_name = "{test_name}" AND user_nick = "{user_nick}"',
+                (datas[0], datas[1], datas[2]))
+            row = self.__db.db_read('SELECT row_id FROM statistic WHERE test_name = ? AND user_nick = ?', (test_name, user_nick))[0][0]
+        return row
+
+    def add_entry_statistic_excel(self, datas, test_name, user_nick, row):
+        index = list()
+        data = self.__sheet.get_statistic_excell()
+        for i in data:
+            index.append(i[0])
+        check = self.__db.db_read('SELECT row_id FROM statistic WHERE test_name = ? AND user_nick = ?',
+                                 (test_name, user_nick))[0][0]
+        if str(check) in index:
+            self.__sheet.update_statistic_excell([row, datas[0], test_name, user_nick, datas[1], datas[2]], index.index(str(check))+2)
+        else:
+            self.__sheet.add_stat([row, datas[0], test_name, user_nick, datas[1], datas[2]])
+
+    def get_requiem(self, test_id):
+        return self.__db.db_read('SELECT after_test FROM tests WHERE row_id = ?',
+                                 (test_id, ))[0][0]
+
+
 
     def update_products_from_excell(self, data):
         index = list()
