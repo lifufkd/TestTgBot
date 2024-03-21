@@ -48,3 +48,10 @@ class Bot_inline_btns:
         self.__markup.add(btn)
         return self.__markup
 
+    def answer_btns(self, quanity):
+        markup = types.InlineKeyboardMarkup(row_width=4)
+        for i in range(quanity):
+            btn = types.InlineKeyboardButton(i+1, callback_data=f'answer{i+1}')
+            markup.add(btn)
+        return markup
+

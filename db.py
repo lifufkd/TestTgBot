@@ -41,6 +41,8 @@ class DB:
             before_test TEXT,
             after_question TEXT,
             after_test TEXT,
+            correct_link BLOB,
+            incorrect_link BLOB,
             questions TEXT
             )
             ''')
