@@ -25,16 +25,33 @@ class Bot_inline_btns:
         keyboard.add(product_catalog)
         return keyboard
 
-    def categories_btns(self, data):
-        data.append(('<main>', '⚙️ В главное меню'))
+    def start_test_btn(self, text, test_id):
         markup = types.InlineKeyboardMarkup(row_width=1)
-        for i in data:
-            btn = types.InlineKeyboardButton(i[1], callback_data=f'categories{i[0]}')
-            markup.add(btn)
+        btn = types.InlineKeyboardButton(text, callback_data=f'start_test{test_id}')
+        markup.add(btn)
+        return markup
+
+    def contiue_test_btn(self, text, test_id):
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        btn = types.InlineKeyboardButton(text, callback_data=f'continue{test_id}')
+        markup.add(btn)
+        return markup
+
+    def end_test_btn(self, test_id):
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        btn = types.InlineKeyboardButton('завершить тест', callback_data=f'end{test_id}')
+        markup.add(btn)
         return markup
 
     def admin_btns(self):
         btn = types.InlineKeyboardButton('синхронизировать', callback_data=f'sync')
         self.__markup.add(btn)
         return self.__markup
+
+    def answer_btns(self, quanity):
+        markup = types.InlineKeyboardMarkup(row_width=4)
+        for i in range(quanity):
+            btn = types.InlineKeyboardButton(i+1, callback_data=f'answer{i+1}')
+            markup.add(btn)
+        return markup
 

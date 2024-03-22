@@ -41,17 +41,16 @@ class DB:
             before_test TEXT,
             after_question TEXT,
             after_test TEXT,
+            correct_link BLOB,
+            incorrect_link BLOB,
             questions TEXT
             )
             ''')
             self.__cursor.execute('''
             CREATE TABLE questions(
-            row_id INTEGER,
+            row_id TEXT,
             name TEXT,
-            quest1 TEXT,
-            quest2 TEXT,
-            quest3 TEXT,
-            quest4 TEXT,
+            questions TEXT,
             answer_description TEXT,
             correct INTEGER,
             id_test TEXT
@@ -59,7 +58,7 @@ class DB:
             ''')
             self.__cursor.execute('''
             CREATE TABLE statistic(
-            row_id INTEGER,
+            row_id INTEGER primary key autoincrement not null,
             test_name TEXT,
             date INTEGER,
             progress INTEGER, 
