@@ -181,9 +181,11 @@ class DbAct:
             return None, None
 
     def get_question(self, quest_id, id_test):
-        quanity = self.__db.db_read('SELECT name, questions FROM questions WHERE row_id = ? AND id_test = ?', (quest_id, id_test))[0]
-        quests = json.loads(quanity[1])
-        return quanity[0], quests
+        print(quest_id, id_test)
+        quanity = self.__db.db_read('SELECT name, questions FROM questions WHERE row_id = ? AND id_test = ?', (quest_id, id_test))
+        print(quanity)
+        quests = json.loads(quanity[0][1])
+        return quanity[0][0], quests
 
     def get_after_quest(self, id_test, id_quest):
         test = self.__db.db_read('SELECT after_question_c, after_question_i, text_continue_btn, correct_link, incorrect_link, questions FROM tests WHERE row_id = ?', (id_test,))[0]
@@ -205,8 +207,8 @@ class DbAct:
             out.append(i[0])
         return out
 
-    def check_correct(self, question_id, index):
-        id_test = self.get_questions_id_by_test_id(question_id)
+    def check_correct(self, question_id, index, trd):
+        id_test = self.get_questions_id_by_test_id(trd)
         correct = self.__db.db_read('SELECT correct FROM questions WHERE row_id = ? AND id_test = ?', (question_id, id_test))[0][0]
         if index == str(correct):
             return True

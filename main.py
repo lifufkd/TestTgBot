@@ -31,6 +31,7 @@ def get_tests():
 def get_question(test_id, quest_id):
     s = ''
     name, questions = db_actions.get_question(test_id, quest_id)
+    print(questions)
     s += f'Вопрос: {name}'
     return s, questions
 
@@ -134,7 +135,7 @@ def main():
                     temp_user_data.temp_data(user_id)[user_id][2] = 0  # пройденных вопросов
                     temp_user_data.temp_data(user_id)[user_id][3] = command[10:]
                     temp_user_data.temp_data(user_id)[user_id][4] = True
-                    text, quanity = get_question(temp_user_data.temp_data(user_id)[user_id][1][0], db_actions.get_questions_id_by_test_id(temp_user_data.temp_data(user_id)[user_id][1][0]))
+                    text, quanity = get_question(temp_user_data.temp_data(user_id)[user_id][1][0], db_actions.get_questions_id_by_test_id(command[10:]))
                     bot.send_message(user_id, text, reply_markup=buttons.answer_btns(quanity))
             elif command[:8] == 'continue':
                 if command[8:] in temp_user_data.temp_data(user_id)[user_id][1] and \
@@ -142,7 +143,7 @@ def main():
                         len(temp_user_data.temp_data(user_id)[user_id][1]) - temp_user_data.temp_data(user_id)[user_id][
                     2] >= 0:
                     temp_user_data.temp_data(user_id)[user_id][4] = True
-                    text, quanity = get_question(command[8:], db_actions.get_questions_id_by_test_id(command[8:]))
+                    text, quanity = get_question(command[8:], db_actions.get_questions_id_by_test_id(temp_user_data.temp_data(user_id)[user_id][3]))
                     bot.send_message(user_id, text, reply_markup=buttons.answer_btns(quanity))
             elif command[:3] == 'end':
                 if temp_user_data.temp_data(user_id)[user_id][0] is not None:
@@ -168,7 +169,7 @@ def main():
                     if index == 0:
                         marks = 0
                     temp_user_data.temp_data(user_id)[user_id][4] = False
-                    if db_actions.check_correct(temp_user_data.temp_data(user_id)[user_id][1][index], command[6:]):
+                    if db_actions.check_correct(temp_user_data.temp_data(user_id)[user_id][1][index], command[6:], temp_user_data.temp_data(user_id)[user_id][3]):
                         row = db_actions.add_entry_statistic([current_time, progress, marks + 1], test_name,
                                                              f'https://t.me/{tg_nick}')
                         db_actions.add_entry_statistic_excel([current_time, progress, marks + 1], test_name,
