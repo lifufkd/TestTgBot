@@ -37,13 +37,29 @@ def get_question(test_id):
     return s, len(questions)
 
 
-def get_category():
-    s = ''
-    data = db_actions.get_categories()
-    for i in data:
-        s += f'{i[0]}. {i[1]}\n'
-    return s
+def split_text(text):
+    out = list()
+    s = str()
+    if len(text) > 1000:
+        for i in text:
+            if len(s) >= 1000:
+                out.append(s)
+                s = ''
+            s += i
+    else:
+        out.append(text)
+        return out
+    out.append(s)
+    return out
 
+
+def get_after_test(test_id, user_nick, user_id):
+    data = db_actions.get_requiem(test_id)
+    data = data.replace('#{баллов}',
+                        str(db_actions.get_marks_by_stat(db_actions.get_test_name_by_ids(test_id),
+                                                         f'https://t.me/{user_nick}')))
+    data = data.replace('#{вопросов_всего}', str(len(temp_user_data.temp_data(user_id)[user_id][1])))
+    return data
 
 def main():
     @bot.message_handler(commands=['start'])
@@ -125,11 +141,7 @@ def main():
                     bot.send_message(user_id, text, reply_markup=buttons.answer_btns(quanity))
             elif command[:3] == 'end':
                 if temp_user_data.temp_data(user_id)[user_id][0] is not None:
-                    data = db_actions.get_requiem(command[3:])
-                    data = data.replace('#{баллов}',
-                                        str(db_actions.get_marks_by_stat(db_actions.get_test_name_by_ids(command[3:]),
-                                                                         f'https://t.me/{tg_nick}')))
-                    data = data.replace('#{вопросов_всего}', str(len(temp_user_data.temp_data(user_id)[user_id][1])))
+                    data = get_after_test(command[3:], tg_nick, user_id)
                     temp_user_data.temp_data(user_id)[user_id][0] = None
                     bot.send_message(user_id, data)
             elif command[:6] == 'answer' and temp_user_data.temp_data(user_id)[user_id][0] == 1:
@@ -142,11 +154,10 @@ def main():
                     marks = db_actions.get_marks_by_stat(test_name, f'https://t.me/{tg_nick}')
                     progress = round(100 * temp_user_data.temp_data(user_id)[user_id][2] / all_questions, 0)
                     current_time = datetime.now(pytz.timezone('Europe/Moscow')).strftime('%d.%m.%Y')
-                    after_test = db_actions.get_requiem(temp_user_data.temp_data(user_id)[user_id][3])
+                    after_test = get_after_test(temp_user_data.temp_data(user_id)[user_id][3], tg_nick, user_id)
                     after_quest, solve = db_actions.get_after_quest(temp_user_data.temp_data(user_id)[user_id][3],
                                                                     temp_user_data.temp_data(user_id)[user_id][1][
                                                                         index])
-                    print(after_quest)
                     if index == 0:
                         marks = 0
                     temp_user_data.temp_data(user_id)[user_id][4] = False
@@ -173,17 +184,24 @@ def main():
                         db_actions.add_entry_statistic_excel([current_time, progress, marks], test_name,
                                                              f'https://t.me/{tg_nick}', row)
                         pre_text = after_quest[0].replace('{баллов}', f'{str(marks)} баллов')
+                        text = split_text(f'{pre_text}\n\nВы ответили неправильно, верное решение:\n\n{solve}\n\n{after_test}')
                         if all_questions != index + 1:
-                            bot.send_photo(photo=after_quest[3], chat_id=user_id,
-                                           caption=f'{pre_text}\n\nВы ответили неправильно, верное решение:\n\n{solve}\n\n{after_test}',
-                                           reply_markup=buttons.contiue_test_btn(after_quest[1],
-                                                                                 temp_user_data.temp_data(user_id)[
-                                                                                     user_id][1][index + 1]))
+                            reply_markup = buttons.contiue_test_btn(after_quest[1], temp_user_data.temp_data(user_id)[
+                                                                          user_id][1][index + 1])
                         else:
-                            bot.send_photo(photo=after_quest[3], chat_id=user_id,
-                                           caption=f'{pre_text}\n\nВы ответили неправильно, верное решение:\n\n{solve}\n\n{after_test}',
-                                           reply_markup=buttons.end_test_btn(
-                                               temp_user_data.temp_data(user_id)[user_id][3]))
+                            reply_markup = buttons.contiue_test_btn(after_quest[1], temp_user_data.temp_data(user_id)[
+                                                                                             user_id][1][index + 1])
+                        for i in range(len(text)):
+                            if len(text) == 1:
+                                bot.send_photo(photo=after_quest[3], chat_id=user_id,
+                                                   caption=text[i],
+                                                   reply_markup=reply_markup)
+                            elif i == 0:
+                                bot.send_photo(photo=after_quest[3], chat_id=user_id, caption=text[i])
+                            elif i+1 == len(text):
+                                bot.send_message(user_id, text[i], reply_markup=reply_markup)
+                            else:
+                                bot.send_message(user_id, text[i])
 
         else:
             bot.send_message(user_id, 'Введите /start для запуска бота')

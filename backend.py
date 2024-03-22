@@ -161,6 +161,7 @@ class DbAct:
         data = self.__db.db_read('SELECT row_id, name FROM tests', ())
         return data
 
+
     def pre_test_data(self, test_id):
         data = self.__db.db_read('SELECT name, before_test, description, text_start_btn, questions FROM tests WHERE row_id = ?', (test_id, ))
         if len(data) > 0:
