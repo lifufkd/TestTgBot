@@ -20,8 +20,8 @@ class Bot_inline_btns:
     #     return self.__markup
 
     def start_buttons(self):
-        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        product_catalog = types.KeyboardButton('🗂 Посмотреть доступные тесты')
+        keyboard = types.InlineKeyboardMarkup(row_width=1)
+        product_catalog = types.InlineKeyboardButton('🗂 Посмотреть доступные тесты', callback_data='tret')
         keyboard.add(product_catalog)
         return keyboard
 
@@ -50,8 +50,8 @@ class Bot_inline_btns:
 
     def answer_btns(self, quanity):
         markup = types.InlineKeyboardMarkup(row_width=4)
-        for i in range(quanity):
-            btn = types.InlineKeyboardButton(i+1, callback_data=f'answer{i+1}')
+        for i in range(len(quanity)):
+            btn = types.InlineKeyboardButton(quanity[i], callback_data=f'answer{i+1}')
             markup.add(btn)
         return markup
 

@@ -132,12 +132,12 @@ class DbAct:
             incorrect_link = self.__sheet.download_file_from_google_drive(i[8][32:65])
             if i[0] in index:
                 self.__db.db_write(
-                    f'UPDATE tests SET name = ?, description = ?, text_start_btn = ?, text_continue_btn = ?, before_test = ?, after_question_c = ?, after_test = ?, after_question_i = ?, correct_link = ?, incorrect_link = ?, questions = ? WHERE row_id = {i[0]}',
-                    (i[1], i[2], i[4], i[11], i[6], i[9], i[12], i[10], correct_link, incorrect_link, i[5]))
+                    f'UPDATE tests SET name = ?, description = ?, text_start_btn = ?, text_continue_btn = ?, before_test = ?, after_question_c = ?, after_test = ?, after_question_i = ?, correct_link = ?, incorrect_link = ?, questions = ?, test_command = ? WHERE row_id = {i[0]}',
+                    (i[1], i[2], i[4], i[11], i[6], i[9], i[12], i[10], correct_link, incorrect_link, i[5], i[3]))
             else:
                 self.__db.db_write(
-                    f'INSERT INTO tests (row_id, name, description, text_start_btn, text_continue_btn, before_test, after_question_c, after_test, after_question_i, correct_link, incorrect_link, questions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                    (i[0], i[1], i[2], i[4], i[11], i[6], i[9], i[12], i[10], correct_link, incorrect_link, i[5]))
+                    f'INSERT INTO tests (row_id, name, description, text_start_btn, text_continue_btn, before_test, after_question_c, after_test, after_question_i, correct_link, incorrect_link, questions, test_command) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    (i[0], i[1], i[2], i[4], i[11], i[6], i[9], i[12], i[10], correct_link, incorrect_link, i[5], i[3]))
 
     def update_questions(self):
         index = list()
@@ -171,8 +171,17 @@ class DbAct:
         else:
             return None, None
 
-    def get_question(self, quest_id):
-        quanity = self.__db.db_read('SELECT name, questions FROM questions WHERE row_id = ?', (quest_id, ))[0]
+    def command_run(self, test_command):
+        data = self.__db.db_read('SELECT name, before_test, description, text_start_btn, row_id, questions FROM tests WHERE test_command = ?', (test_command, ))
+        if len(data) > 0:
+            data = data[0]
+            quanity = self.__db.db_read('SELECT COUNT(*) FROM questions WHERE id_test = ?', (data[5],))[0][0]
+            return quanity, data[:5]
+        else:
+            return None, None
+
+    def get_question(self, quest_id, id_test):
+        quanity = self.__db.db_read('SELECT name, questions FROM questions WHERE row_id = ? AND id_test = ?', (quest_id, id_test))[0]
         quests = json.loads(quanity[1])
         return quanity[0], quests
 
@@ -197,7 +206,8 @@ class DbAct:
         return out
 
     def check_correct(self, question_id, index):
-        correct = self.__db.db_read('SELECT correct FROM questions WHERE row_id = ?', (question_id,))[0][0]
+        id_test = self.get_questions_id_by_test_id(question_id)
+        correct = self.__db.db_read('SELECT correct FROM questions WHERE row_id = ? AND id_test = ?', (question_id, id_test))[0][0]
         if index == str(correct):
             return True
 

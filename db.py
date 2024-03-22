@@ -35,6 +35,7 @@ class DB:
             CREATE TABLE tests(
             row_id INTEGER,
             name TEXT,
+            test_command TEXT,
             description TEXT,
             text_start_btn TEXT,
             text_continue_btn TEXT,

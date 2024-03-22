@@ -28,13 +28,11 @@ def get_tests():
     return s
 
 
-def get_question(test_id):
+def get_question(test_id, quest_id):
     s = ''
-    name, questions = db_actions.get_question(test_id)
-    s += f'Вопрос: {name}\n'
-    for i in range(len(questions)):
-        s += f'{i + 1}. {questions[i]}\n'
-    return s, len(questions)
+    name, questions = db_actions.get_question(test_id, quest_id)
+    s += f'Вопрос: {name}'
+    return s, questions
 
 
 def split_text(text):
@@ -64,14 +62,25 @@ def get_after_test(test_id, user_nick, user_id):
 def main():
     @bot.message_handler(commands=['start'])
     def start_message(message):
+        command = message.text.replace('/', '')
         user_id = message.chat.id
+        print(command)
         db_actions.add_user(user_id, message.from_user.first_name, message.from_user.last_name,
                             f'@{message.from_user.username}')
         buttons = Bot_inline_btns()
-        bot.send_message(message.chat.id,
-                         f'Привет {message.from_user.first_name}👋\n'
-                         'Я помогу вам найти тест!',
-                         reply_markup=buttons.start_buttons())
+        if command == 'start':
+            bot.send_message(message.chat.id,
+                             f'Привет {message.from_user.first_name}👋\n'
+                             'Я помогу вам найти тест!',
+                             reply_markup=buttons.start_buttons())
+        elif command[:5] == 'start':
+            quanity, data = db_actions.command_run(command[6:])
+            if quanity and data is not None:
+                temp_user_data.temp_data(user_id)[user_id][0] = None
+                bot.send_message(user_id, f'{data[1]}',
+                                 reply_markup=buttons.start_test_btn(data[3], data[4]))
+            else:
+                bot.send_message(user_id, 'Тест не существует')
 
     @bot.message_handler(commands=['admin'])
     def tovar_msg(message):
@@ -102,10 +111,6 @@ def main():
                                          reply_markup=buttons.start_test_btn(data[3], user_input))
                     else:
                         bot.send_message(user_id, 'Тест не существует')
-            else:
-                if message.text == '🗂 Посмотреть доступные тесты':
-                    temp_user_data.temp_data(user_id)[user_id][0] = 0
-                    bot.send_message(user_id, f'Выберите тест введя его номер:\n{get_tests()}')
         else:
             bot.send_message(message.chat.id, 'Введите /start для запуска бота')
 
@@ -120,7 +125,7 @@ def main():
                 if command == 'sync':
                     db_actions.update_config(sheet.config_excell())
                     db_actions.update_questions()
-                    bot.send_message(user_id, 'Обновление успешно завершено!')
+                    bot.send_message(user_id, 'Все тесты успешно загружены')
             if command[:10] == 'start_test':
                 if temp_user_data.temp_data(user_id)[user_id][0] is None:
                     temp_user_data.temp_data(user_id)[user_id][1] = db_actions.get_id_quest_by_master(
@@ -129,7 +134,7 @@ def main():
                     temp_user_data.temp_data(user_id)[user_id][2] = 0  # пройденных вопросов
                     temp_user_data.temp_data(user_id)[user_id][3] = command[10:]
                     temp_user_data.temp_data(user_id)[user_id][4] = True
-                    text, quanity = get_question(temp_user_data.temp_data(user_id)[user_id][1][0])
+                    text, quanity = get_question(temp_user_data.temp_data(user_id)[user_id][1][0], db_actions.get_questions_id_by_test_id(temp_user_data.temp_data(user_id)[user_id][1][0]))
                     bot.send_message(user_id, text, reply_markup=buttons.answer_btns(quanity))
             elif command[:8] == 'continue':
                 if command[8:] in temp_user_data.temp_data(user_id)[user_id][1] and \
@@ -137,13 +142,16 @@ def main():
                         len(temp_user_data.temp_data(user_id)[user_id][1]) - temp_user_data.temp_data(user_id)[user_id][
                     2] >= 0:
                     temp_user_data.temp_data(user_id)[user_id][4] = True
-                    text, quanity = get_question(command[8:])
+                    text, quanity = get_question(command[8:], db_actions.get_questions_id_by_test_id(command[8:]))
                     bot.send_message(user_id, text, reply_markup=buttons.answer_btns(quanity))
             elif command[:3] == 'end':
                 if temp_user_data.temp_data(user_id)[user_id][0] is not None:
                     data = get_after_test(command[3:], tg_nick, user_id)
                     temp_user_data.temp_data(user_id)[user_id][0] = None
                     bot.send_message(user_id, data)
+            elif command == 'tret':
+                temp_user_data.temp_data(user_id)[user_id][0] = 0
+                bot.send_message(user_id, f'Выберите тест введя его номер:\n{get_tests()}')
             elif command[:6] == 'answer' and temp_user_data.temp_data(user_id)[user_id][0] == 1:
                 all_questions = len(temp_user_data.temp_data(user_id)[user_id][1])
                 if all_questions - temp_user_data.temp_data(user_id)[user_id][2] >= 0 and \
