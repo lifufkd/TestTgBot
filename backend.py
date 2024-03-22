@@ -132,12 +132,12 @@ class DbAct:
             incorrect_link = self.__sheet.download_file_from_google_drive(i[8][32:65])
             if i[0] in index:
                 self.__db.db_write(
-                    f'UPDATE tests SET name = ?, description = ?, text_start_btn = ?, text_continue_btn = ?, before_test = ?, after_question = ?, after_test = ?, correct_link = ?, incorrect_link = ?, questions = ? WHERE row_id = {i[0]}',
-                    (i[1], i[2], i[4], i[10], i[6], i[9], i[11], correct_link, incorrect_link, i[5]))
+                    f'UPDATE tests SET name = ?, description = ?, text_start_btn = ?, text_continue_btn = ?, before_test = ?, after_question_c = ?, after_test = ?, after_question_i = ?, correct_link = ?, incorrect_link = ?, questions = ? WHERE row_id = {i[0]}',
+                    (i[1], i[2], i[4], i[11], i[6], i[9], i[12], i[10], correct_link, incorrect_link, i[5]))
             else:
                 self.__db.db_write(
-                    f'INSERT INTO tests (row_id, name, description, text_start_btn, text_continue_btn, before_test, after_question, after_test, correct_link, incorrect_link, questions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                    (i[0], i[1], i[2], i[4], i[10], i[6], i[9], i[11], correct_link, incorrect_link, i[5]))
+                    f'INSERT INTO tests (row_id, name, description, text_start_btn, text_continue_btn, before_test, after_question_c, after_test, after_question_i, correct_link, incorrect_link, questions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    (i[0], i[1], i[2], i[4], i[11], i[6], i[9], i[12], i[10], correct_link, incorrect_link, i[5]))
 
     def update_questions(self):
         index = list()
@@ -177,9 +177,9 @@ class DbAct:
         return quanity[0], quests
 
     def get_after_quest(self, id_test, id_quest):
-        test = self.__db.db_read('SELECT after_question, text_continue_btn, correct_link, incorrect_link, questions FROM tests WHERE row_id = ?', (id_test,))[0]
-        quest = self.__db.db_read('SELECT answer_description FROM questions WHERE row_id = ? AND id_test = ?', (id_quest, test[4]))[0][0]
-        return test[:4], quest
+        test = self.__db.db_read('SELECT after_question_c, after_question_i, text_continue_btn, correct_link, incorrect_link, questions FROM tests WHERE row_id = ?', (id_test,))[0]
+        quest = self.__db.db_read('SELECT answer_description FROM questions WHERE row_id = ? AND id_test = ?', (id_quest, test[5]))[0][0]
+        return test[:5], quest
 
     def get_questions_id_by_test_id(self, test_id):
         return self.__db.db_read('SELECT questions FROM tests WHERE row_id = ?', (test_id,))[0][0]

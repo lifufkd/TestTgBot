@@ -154,7 +154,6 @@ def main():
                     marks = db_actions.get_marks_by_stat(test_name, f'https://t.me/{tg_nick}')
                     progress = round(100 * temp_user_data.temp_data(user_id)[user_id][2] / all_questions, 0)
                     current_time = datetime.now(pytz.timezone('Europe/Moscow')).strftime('%d.%m.%Y')
-                    after_test = get_after_test(temp_user_data.temp_data(user_id)[user_id][3], tg_nick, user_id)
                     after_quest, solve = db_actions.get_after_quest(temp_user_data.temp_data(user_id)[user_id][3],
                                                                     temp_user_data.temp_data(user_id)[user_id][1][
                                                                         index])
@@ -168,14 +167,14 @@ def main():
                                                              f'https://t.me/{tg_nick}', row)
                         pre_text = after_quest[0].replace('{баллов}', f'{str(marks + 1)} баллов')
                         if all_questions != index + 1:
-                            bot.send_photo(photo=after_quest[2], chat_id=user_id,
-                                           caption=f'{pre_text}\nВы ответили правильно!',
-                                           reply_markup=buttons.contiue_test_btn(after_quest[1],
+                            bot.send_photo(photo=after_quest[3], chat_id=user_id,
+                                           caption=f'{pre_text}',
+                                           reply_markup=buttons.contiue_test_btn(after_quest[2],
                                                                                  temp_user_data.temp_data(user_id)[
                                                                                      user_id][1][index + 1]))
                         else:
-                            bot.send_photo(photo=after_quest[2], chat_id=user_id,
-                                           caption=f'{pre_text}\nВы ответили правильно!',
+                            bot.send_photo(photo=after_quest[3], chat_id=user_id,
+                                           caption=f'{pre_text}',
                                            reply_markup=buttons.end_test_btn(
                                                temp_user_data.temp_data(user_id)[user_id][3]))
                     else:
@@ -183,21 +182,20 @@ def main():
                                                              f'https://t.me/{tg_nick}')
                         db_actions.add_entry_statistic_excel([current_time, progress, marks], test_name,
                                                              f'https://t.me/{tg_nick}', row)
-                        pre_text = after_quest[0].replace('{баллов}', f'{str(marks)} баллов')
-                        text = split_text(f'{pre_text}\n\nВы ответили неправильно, верное решение:\n\n{solve}\n\n{after_test}')
+                        pre_text = after_quest[1].replace('{баллов}', f'{str(marks)} баллов')
+                        text = split_text(f'{pre_text}\n\n{solve}')
                         if all_questions != index + 1:
-                            reply_markup = buttons.contiue_test_btn(after_quest[1], temp_user_data.temp_data(user_id)[
+                            reply_markup = buttons.contiue_test_btn(after_quest[2], temp_user_data.temp_data(user_id)[
                                                                           user_id][1][index + 1])
                         else:
-                            reply_markup = buttons.contiue_test_btn(after_quest[1], temp_user_data.temp_data(user_id)[
-                                                                                             user_id][1][index + 1])
+                            reply_markup = buttons.end_test_btn(temp_user_data.temp_data(user_id)[user_id][3])
                         for i in range(len(text)):
                             if len(text) == 1:
-                                bot.send_photo(photo=after_quest[3], chat_id=user_id,
+                                bot.send_photo(photo=after_quest[4], chat_id=user_id,
                                                    caption=text[i],
                                                    reply_markup=reply_markup)
                             elif i == 0:
-                                bot.send_photo(photo=after_quest[3], chat_id=user_id, caption=text[i])
+                                bot.send_photo(photo=after_quest[4], chat_id=user_id, caption=text[i])
                             elif i+1 == len(text):
                                 bot.send_message(user_id, text[i], reply_markup=reply_markup)
                             else:
