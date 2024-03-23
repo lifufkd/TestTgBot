@@ -173,7 +173,7 @@ def main():
                     if db_actions.check_correct(temp_user_data.temp_data(user_id)[user_id][1][index], command[6:], temp_user_data.temp_data(user_id)[user_id][3]):
                         row = db_actions.add_entry_statistic([current_time, progress, marks + 1], test_name,
                                                              f'https://t.me/{tg_nick}')
-                        threading.Thread(target=db_actions.add_entry_statistic_excel(), args=([current_time, progress, marks + 1], test_name,
+                        threading.Thread(target=db_actions.add_entry_statistic_excel([current_time, progress, marks + 1], test_name,
                                                              f'https://t.me/{tg_nick}', row)).start()
                         pre_text = after_quest[0].replace('{баллов}', f'{str(marks + 1)} баллов')
                         if all_questions != index + 1:
