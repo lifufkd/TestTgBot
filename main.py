@@ -152,6 +152,9 @@ def main():
                     data = data.replace('{баллов}', f'{str(marks)} баллов')
                     temp_user_data.temp_data(user_id)[user_id][0] = None
                     bot.send_message(user_id, data, reply_markup=buttons.start_buttons('Выбрать тест'))
+            elif command[:5] == 'tret':
+                temp_user_data.temp_data(user_id)[user_id][0] = 0
+                bot.send_message(user_id, f'Выберите тест введя его номер:\n{get_tests()}')
             elif command[:6] == 'answer' and temp_user_data.temp_data(user_id)[user_id][0] == 1:
                 all_questions = len(temp_user_data.temp_data(user_id)[user_id][1])
                 if all_questions - temp_user_data.temp_data(user_id)[user_id][2] >= 0 and \
