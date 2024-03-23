@@ -5,6 +5,7 @@
 #####################################
 import platform
 import telebot
+import re
 from threading import Lock
 from backend import TempUserData, DbAct, Excell
 from config_parser import ConfigParser
@@ -37,19 +38,19 @@ def get_question(test_id, quest_id):
 
 
 def split_text(text):
-    out = list()
-    s = str()
-    if len(text) > 1000:
-        for i in text:
-            if len(s) >= 1000:
-                out.append(s)
-                s = ''
-            s += i
-    else:
-        out.append(text)
-        return out
-    out.append(s)
-    return out
+    sentence_endings = r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s'
+    sentences = re.split(sentence_endings, text)
+    result = []
+    current_line = ''
+    for sentence in sentences:
+        if len(current_line) + len(sentence) <= 1000:
+            current_line += sentence
+        else:
+            result.append(current_line)
+            current_line = sentence
+    if current_line:
+        result.append(current_line)
+    return result
 
 
 def get_after_test(test_id, user_nick, user_id):
