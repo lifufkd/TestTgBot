@@ -4,7 +4,6 @@
 #               zzsxd               #
 #####################################
 from telebot import types
-from textwrap import wrap
 #####################################
 
 
@@ -19,9 +18,9 @@ class Bot_inline_btns:
     #     self.__markup.add(gift, write)
     #     return self.__markup
 
-    def start_buttons(self):
+    def start_buttons(self, text):
         keyboard = types.InlineKeyboardMarkup(row_width=1)
-        product_catalog = types.InlineKeyboardButton('🗂 Посмотреть доступные тесты', callback_data='tret')
+        product_catalog = types.InlineKeyboardButton(f'🗂 {text}', callback_data='tret')
         keyboard.add(product_catalog)
         return keyboard
 

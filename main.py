@@ -5,6 +5,7 @@
 #####################################
 import platform
 import telebot
+import threading
 import re
 from threading import Lock
 from backend import TempUserData, DbAct, Excell
@@ -66,7 +67,6 @@ def main():
     def start_message(message):
         command = message.text.replace('/', '')
         user_id = message.chat.id
-        print(command)
         db_actions.add_user(user_id, message.from_user.first_name, message.from_user.last_name,
                             f'@{message.from_user.username}')
         buttons = Bot_inline_btns()
@@ -74,7 +74,7 @@ def main():
             bot.send_message(message.chat.id,
                              f'Привет {message.from_user.first_name}👋\n'
                              'Я помогу вам найти тест!',
-                             reply_markup=buttons.start_buttons())
+                             reply_markup=buttons.start_buttons('Найти тест'))
         elif command[:5] == 'start':
             quanity, data = db_actions.command_run(command[6:])
             if quanity and data is not None:
@@ -153,7 +153,7 @@ def main():
                     marks = db_actions.get_marks_by_stat(test_name, f'https://t.me/{tg_nick}')
                     data = data.replace('{баллов}', f'{str(marks)} баллов')
                     temp_user_data.temp_data(user_id)[user_id][0] = None
-                    bot.send_message(user_id, data)
+                    bot.send_message(user_id, data, reply_markup=buttons.start_buttons('Найти новый тест'))
             elif command == 'tret':
                 temp_user_data.temp_data(user_id)[user_id][0] = 0
                 bot.send_message(user_id, f'Выберите тест введя его номер:\n{get_tests()}')
@@ -176,8 +176,8 @@ def main():
                     if db_actions.check_correct(temp_user_data.temp_data(user_id)[user_id][1][index], command[6:], temp_user_data.temp_data(user_id)[user_id][3]):
                         row = db_actions.add_entry_statistic([current_time, progress, marks + 1], test_name,
                                                              f'https://t.me/{tg_nick}')
-                        db_actions.add_entry_statistic_excel([current_time, progress, marks + 1], test_name,
-                                                             f'https://t.me/{tg_nick}', row)
+                        threading.Thread(target=db_actions.add_entry_statistic_excel([current_time, progress, marks + 1], test_name,
+                                                             f'https://t.me/{tg_nick}', row)).start()
                         pre_text = after_quest[0].replace('{баллов}', f'{str(marks + 1)} баллов')
                         if all_questions != index + 1:
                             bot.send_photo(photo=after_quest[3], chat_id=user_id,
@@ -193,8 +193,9 @@ def main():
                     else:
                         row = db_actions.add_entry_statistic([current_time, progress, marks], test_name,
                                                              f'https://t.me/{tg_nick}')
-                        db_actions.add_entry_statistic_excel([current_time, progress, marks], test_name,
-                                                             f'https://t.me/{tg_nick}', row)
+                        threading.Thread(
+                            target=db_actions.add_entry_statistic_excel([current_time, progress, marks], test_name,
+                                                                        f'https://t.me/{tg_nick}', row)).start()
                         pre_text = after_quest[1].replace('{баллов}', f'{str(marks)} баллов')
                         text = split_text(f'{pre_text}\n\n{solve}')
                         if all_questions != index + 1:
