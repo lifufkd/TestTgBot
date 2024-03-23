@@ -39,7 +39,7 @@ class Bot_inline_btns:
 
     def end_test_btn(self, test_id):
         markup = types.InlineKeyboardMarkup(row_width=1)
-        btn = types.InlineKeyboardButton('завершить тест', callback_data=f'end{test_id}')
+        btn = types.InlineKeyboardButton('Итоги теста', callback_data=f'end{test_id}')
         markup.add(btn)
         return markup
 

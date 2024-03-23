@@ -149,6 +149,9 @@ def main():
             elif command[:3] == 'end':
                 if temp_user_data.temp_data(user_id)[user_id][0] is not None:
                     data = get_after_test(command[3:], tg_nick, user_id)
+                    test_name = db_actions.get_test_name_by_id(temp_user_data.temp_data(user_id)[user_id][3])
+                    marks = db_actions.get_marks_by_stat(test_name, f'https://t.me/{tg_nick}')
+                    data = data.replace('{баллов}', f'{str(marks)} баллов')
                     temp_user_data.temp_data(user_id)[user_id][0] = None
                     bot.send_message(user_id, data)
             elif command == 'tret':
