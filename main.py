@@ -190,8 +190,9 @@ def main():
                     else:
                         row = db_actions.add_entry_statistic([current_time, progress, marks], test_name,
                                                              f'https://t.me/{tg_nick}')
-                        db_actions.add_entry_statistic_excel([current_time, progress, marks], test_name,
-                                                             f'https://t.me/{tg_nick}', row)
+                        threading.Thread(
+                            target=db_actions.add_entry_statistic_excel([current_time, progress, marks], test_name,
+                                                                        f'https://t.me/{tg_nick}', row)).start()
                         pre_text = after_quest[1].replace('{баллов}', f'{str(marks)} баллов')
                         text = split_text(f'{pre_text}\n\n{solve}')
                         if all_questions != index + 1:
