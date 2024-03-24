@@ -132,12 +132,16 @@ class DbAct:
             incorrect_link = self.__sheet.download_file_from_google_drive(i[8][32:65])
             if i[0] in index:
                 self.__db.db_write(
-                    f'UPDATE tests SET name = ?, description = ?, text_start_btn = ?, text_continue_btn = ?, before_test = ?, after_question_c = ?, after_test = ?, after_question_i = ?, correct_link = ?, incorrect_link = ?, questions = ?, test_command = ? WHERE row_id = {i[0]}',
-                    (i[1], i[2], i[4], i[11], i[6], i[9], i[12], i[10], correct_link, incorrect_link, i[5], i[3]))
+                    f'UPDATE tests SET name = ?, description = ?, text_start_btn = ?, text_continue_btn = ?, '
+                    f'before_test = ?, after_question_c = ?, after_test = ?, after_question_i = ?, correct_link = ?, '
+                    f'incorrect_link = ?, questions = ?, test_command = ?, row_width = ? WHERE row_id = {i[0]}',
+                    (i[1], i[2], i[4], i[11], i[6], i[9], i[12], i[10], correct_link, incorrect_link, i[5], i[3], i[13]))
             else:
                 self.__db.db_write(
-                    f'INSERT INTO tests (row_id, name, description, text_start_btn, text_continue_btn, before_test, after_question_c, after_test, after_question_i, correct_link, incorrect_link, questions, test_command) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                    (i[0], i[1], i[2], i[4], i[11], i[6], i[9], i[12], i[10], correct_link, incorrect_link, i[5], i[3]))
+                    f'INSERT INTO tests (row_id, name, description, text_start_btn, text_continue_btn, before_test, '
+                    f'after_question_c, after_test, after_question_i, correct_link, incorrect_link, questions, test_command, row_width) '
+                    f'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    (i[0], i[1], i[2], i[4], i[11], i[6], i[9], i[12], i[10], correct_link, incorrect_link, i[5], i[3], i[13]))
 
     def update_questions(self):
         index = list()
@@ -181,11 +185,13 @@ class DbAct:
             return None, None
 
     def get_question(self, quest_id, id_test):
-        print(quest_id, id_test)
-        quanity = self.__db.db_read('SELECT name, questions FROM questions WHERE row_id = ? AND id_test = ?', (quest_id, id_test))
-        print(quanity)
-        quests = json.loads(quanity[0][1])
-        return quanity[0][0], quests
+        quanity = self.__db.db_read('SELECT name, questions FROM questions WHERE row_id = ? AND id_test = ?', (quest_id, id_test))[0]
+        row_width = self.__db.db_read('SELECT row_width FROM tests WHERE questions = ?',
+                                    (id_test, ))[0][0]
+        quanity = list(quanity)
+        quanity.insert(1, row_width)
+        quests = json.loads(quanity[2])
+        return quanity[:2], quests
 
     def get_after_quest(self, id_test, id_quest):
         test = self.__db.db_read('SELECT after_question_c, after_question_i, text_continue_btn, correct_link, incorrect_link, questions FROM tests WHERE row_id = ?', (id_test,))[0]

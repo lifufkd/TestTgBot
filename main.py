@@ -31,11 +31,14 @@ def get_tests():
 
 
 def get_question(test_id, quest_id):
+    out = list()
     s = ''
     name, questions = db_actions.get_question(test_id, quest_id)
     print(questions)
-    s += f'Вопрос: {name}'
-    return s, questions
+    s += f'Вопрос: {name[0]}'
+    out.append(s)
+    out.append(name[1])
+    return out, questions,
 
 
 def split_text(text):
@@ -135,7 +138,8 @@ def main():
                     temp_user_data.temp_data(user_id)[user_id][3] = command[10:]
                     temp_user_data.temp_data(user_id)[user_id][4] = True
                     text, quanity = get_question(temp_user_data.temp_data(user_id)[user_id][1][0], db_actions.get_questions_id_by_test_id(command[10:]))
-                    bot.send_message(user_id, text, reply_markup=buttons.answer_btns(quanity))
+                    print(text)
+                    bot.send_message(user_id, text[0], reply_markup=buttons.answer_btns(quanity, text[1]))
             elif command[:8] == 'continue':
                 if command[8:] in temp_user_data.temp_data(user_id)[user_id][1] and \
                         temp_user_data.temp_data(user_id)[user_id][0] is not None and \
@@ -143,7 +147,7 @@ def main():
                     2] >= 0:
                     temp_user_data.temp_data(user_id)[user_id][4] = True
                     text, quanity = get_question(command[8:], db_actions.get_questions_id_by_test_id(temp_user_data.temp_data(user_id)[user_id][3]))
-                    bot.send_message(user_id, text, reply_markup=buttons.answer_btns(quanity))
+                    bot.send_message(user_id, text[0], reply_markup=buttons.answer_btns(quanity, text[1]))
             elif command[:3] == 'end':
                 if temp_user_data.temp_data(user_id)[user_id][0] is not None:
                     data = get_after_test(command[3:], tg_nick, user_id)
