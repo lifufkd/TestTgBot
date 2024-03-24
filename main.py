@@ -62,6 +62,7 @@ def get_after_test(test_id, user_nick, user_id):
     data = data.replace('#{вопросов_всего}', str(len(temp_user_data.temp_data(user_id)[user_id][1])))
     return data
 
+
 def main():
     @bot.message_handler(commands=['start'])
     def start_message(message):
@@ -71,10 +72,8 @@ def main():
                             f'@{message.from_user.username}')
         buttons = Bot_inline_btns()
         if command == 'start':
-            bot.send_message(message.chat.id,
-                             f'Привет {message.from_user.first_name}👋\n'
-                             'Я помогу вам найти тест!',
-                             reply_markup=buttons.start_buttons('Найти тест'))
+            temp_user_data.temp_data(user_id)[user_id][0] = 0
+            bot.send_message(user_id, f'Выберите тест введя его номер:\n{get_tests()}')
         elif command[:5] == 'start':
             quanity, data = db_actions.command_run(command[6:])
             if quanity and data is not None:
@@ -153,10 +152,7 @@ def main():
                     marks = db_actions.get_marks_by_stat(test_name, f'https://t.me/{tg_nick}')
                     data = data.replace('{баллов}', f'{str(marks)} баллов')
                     temp_user_data.temp_data(user_id)[user_id][0] = None
-                    bot.send_message(user_id, data, reply_markup=buttons.start_buttons('Найти новый тест'))
-            elif command == 'tret':
-                temp_user_data.temp_data(user_id)[user_id][0] = 0
-                bot.send_message(user_id, f'Выберите тест введя его номер:\n{get_tests()}')
+                    bot.send_message(user_id, data, reply_markup=buttons.start_buttons('Выбрать тест'))
             elif command[:6] == 'answer' and temp_user_data.temp_data(user_id)[user_id][0] == 1:
                 all_questions = len(temp_user_data.temp_data(user_id)[user_id][1])
                 if all_questions - temp_user_data.temp_data(user_id)[user_id][2] >= 0 and \
