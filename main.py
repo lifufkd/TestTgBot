@@ -22,19 +22,10 @@ config_name = 'secrets.json'
 ####################################################################
 
 
-def get_tests():
-    s = ''
-    data = db_actions.get_all_tests()
-    for i in data:
-        s += f'{i[0]}. {i[1]}\n'
-    return s
-
-
 def get_question(test_id, quest_id):
     out = list()
     s = ''
     name, questions = db_actions.get_question(test_id, quest_id)
-    print(questions)
     s += f'Вопрос: {name[0]}'
     out.append(s)
     out.append(name[1])
@@ -75,7 +66,8 @@ def main():
         buttons = Bot_inline_btns()
         if command == 'start':
             temp_user_data.temp_data(user_id)[user_id][0] = 0
-            bot.send_message(user_id, f'Выберите тест введя его номер:\n{get_tests()}')
+            data = db_actions.get_all_tests()
+            bot.send_message(user_id, f'Выберите тест:', reply_markup=buttons.first_btns(data))
         elif command[:5] == 'start':
             quanity, data = db_actions.command_run(command[6:])
             if quanity and data is not None:
@@ -95,25 +87,6 @@ def main():
                 if command == 'admin':
                     bot.send_message(message.chat.id, f'Здравствуйте, {message.from_user.first_name}!\n',
                                      reply_markup=buttons.admin_btns())
-        else:
-            bot.send_message(message.chat.id, 'Введите /start для запуска бота')
-
-    @bot.message_handler(content_types=['text', 'photo'])
-    def text_message(message):
-        user_input = message.text
-        user_id = message.chat.id
-        if db_actions.user_is_existed(user_id):
-            buttons = Bot_inline_btns()
-            if temp_user_data.temp_data(user_id)[user_id][0] is not None:
-                status = temp_user_data.temp_data(user_id)[user_id][0]
-                if status == 0:
-                    quanity, data = db_actions.pre_test_data(user_input)
-                    if quanity and data is not None:
-                        temp_user_data.temp_data(user_id)[user_id][0] = None
-                        bot.send_message(user_id, f'{data[1]}',
-                                         reply_markup=buttons.start_test_btn(data[3], user_input))
-                    else:
-                        bot.send_message(user_id, 'Тест не существует')
         else:
             bot.send_message(message.chat.id, 'Введите /start для запуска бота')
 
@@ -148,6 +121,11 @@ def main():
                     temp_user_data.temp_data(user_id)[user_id][4] = True
                     text, quanity = get_question(command[8:], db_actions.get_questions_id_by_test_id(temp_user_data.temp_data(user_id)[user_id][3]))
                     bot.send_message(user_id, text[0], reply_markup=buttons.answer_btns(quanity, text[1]))
+            elif command[:4] == 'test':
+                temp_user_data.temp_data(user_id)[user_id][0] = None
+                quanity, data = db_actions.pre_test_data(command[4:])
+                bot.send_message(user_id, f'{data[1]}',
+                                 reply_markup=buttons.start_test_btn(data[3], command[4:]))
             elif command[:3] == 'end':
                 if temp_user_data.temp_data(user_id)[user_id][0] is not None:
                     data = get_after_test(command[3:], tg_nick, user_id)
@@ -158,7 +136,8 @@ def main():
                     bot.send_message(user_id, data, reply_markup=buttons.start_buttons('Выбрать тест'))
             elif command[:5] == 'tret':
                 temp_user_data.temp_data(user_id)[user_id][0] = 0
-                bot.send_message(user_id, f'Выберите тест введя его номер:\n{get_tests()}')
+                data = db_actions.get_all_tests()
+                bot.send_message(user_id, f'Выберите тест:', reply_markup=buttons.first_btns(data))
             elif command[:6] == 'answer' and temp_user_data.temp_data(user_id)[user_id][0] == 1:
                 all_questions = len(temp_user_data.temp_data(user_id)[user_id][1])
                 if all_questions - temp_user_data.temp_data(user_id)[user_id][2] >= 0 and \

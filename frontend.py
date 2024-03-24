@@ -12,11 +12,12 @@ class Bot_inline_btns:
         super(Bot_inline_btns, self).__init__()
         self.__markup = types.InlineKeyboardMarkup(row_width=2)
 
-    # def start_btns(self):
-    #     gift = types.InlineKeyboardButton('Получить подарок🎁', callback_data='take_gift')
-    #     write = types.InlineKeyboardButton('Написать продавцу✍🏼', callback_data='write_manager')
-    #     self.__markup.add(gift, write)
-    #     return self.__markup
+    def first_btns(self, data):
+        markup = types.InlineKeyboardMarkup(row_width=len(data))
+        for i in data:
+            btn3 = types.InlineKeyboardButton(i[1], callback_data=f'test{i[0]}')
+            markup.add(btn3)
+        return markup
 
     def start_buttons(self, text):
         keyboard = types.InlineKeyboardMarkup(row_width=1)
@@ -48,7 +49,6 @@ class Bot_inline_btns:
         return self.__markup
 
     def answer_btns(self, quanity, qe):
-        print(qe, 'ojo')
         markup = types.InlineKeyboardMarkup(row_width=int(qe))
         btn = types.InlineKeyboardButton(quanity[0], callback_data=f'answer{1}')
         btn1 = types.InlineKeyboardButton(quanity[1], callback_data=f'answer{2}')
