@@ -56,6 +56,8 @@ class Excell:
         for chunk in response.iter_content(32768):
             if chunk:
                 out += chunk
+        if out[:5] == b'<html':
+            out = open('no-photo.png', 'rb').read()
         return out
 
     def get_confirm_token(self, response):

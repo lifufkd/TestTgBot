@@ -38,11 +38,11 @@ def split_text(text):
     result = []
     current_line = ''
     for sentence in sentences:
-        if len(current_line) + len(sentence) <= 1000:
-            current_line += sentence
+        if len(current_line) + len(sentence)+1 <= 1000:
+            current_line += f' {sentence}'
         else:
             result.append(current_line)
-            current_line = sentence
+            current_line = f' {sentence}'
     if current_line:
         result.append(current_line)
     return result
@@ -67,15 +67,15 @@ def main():
         if command == 'start':
             temp_user_data.temp_data(user_id)[user_id][0] = 0
             data = db_actions.get_all_tests()
-            bot.send_message(user_id, f'Выберите тест:', reply_markup=buttons.first_btns(data))
+            bot.send_message(user_id, f'Выберите тест:', reply_markup=buttons.first_btns(data), parse_mode='HTML')
         elif command[:5] == 'start':
             quanity, data = db_actions.command_run(command[6:])
             if quanity and data is not None:
                 temp_user_data.temp_data(user_id)[user_id][0] = None
                 bot.send_message(user_id, f'{data[1]}',
-                                 reply_markup=buttons.start_test_btn(data[3], data[4]))
+                                 reply_markup=buttons.start_test_btn(data[3], data[4]), parse_mode='HTML')
             else:
-                bot.send_message(user_id, 'Тест не существует')
+                bot.send_message(user_id, 'Тест не существует', parse_mode='HTML')
 
     @bot.message_handler(commands=['admin'])
     def tovar_msg(message):
@@ -86,9 +86,9 @@ def main():
             if db_actions.user_is_admin(user_id):
                 if command == 'admin':
                     bot.send_message(message.chat.id, f'Здравствуйте, {message.from_user.first_name}!\n',
-                                     reply_markup=buttons.admin_btns())
+                                     reply_markup=buttons.admin_btns(), parse_mode='HTML')
         else:
-            bot.send_message(message.chat.id, 'Введите /start для запуска бота')
+            bot.send_message(message.chat.id, 'Введите /start для запуска бота', parse_mode='HTML')
 
     @bot.callback_query_handler(func=lambda call: True)
     def callback(call):
@@ -101,7 +101,7 @@ def main():
                 if command == 'sync':
                     db_actions.update_config(sheet.config_excell())
                     db_actions.update_questions()
-                    bot.send_message(user_id, 'Все тесты успешно загружены')
+                    bot.send_message(user_id, 'Все тесты успешно загружены', parse_mode='HTML')
             if command[:10] == 'start_test':
                 if temp_user_data.temp_data(user_id)[user_id][0] is None:
                     temp_user_data.temp_data(user_id)[user_id][1] = db_actions.get_id_quest_by_master(
@@ -112,7 +112,7 @@ def main():
                     temp_user_data.temp_data(user_id)[user_id][4] = True
                     text, quanity = get_question(temp_user_data.temp_data(user_id)[user_id][1][0], db_actions.get_questions_id_by_test_id(command[10:]))
                     print(text)
-                    bot.send_message(user_id, text[0], reply_markup=buttons.answer_btns(quanity, text[1]))
+                    bot.send_message(user_id, text[0], reply_markup=buttons.answer_btns(quanity, text[1]), parse_mode='HTML')
             elif command[:8] == 'continue':
                 if command[8:] in temp_user_data.temp_data(user_id)[user_id][1] and \
                         temp_user_data.temp_data(user_id)[user_id][0] is not None and \
@@ -120,12 +120,12 @@ def main():
                     2] >= 0:
                     temp_user_data.temp_data(user_id)[user_id][4] = True
                     text, quanity = get_question(command[8:], db_actions.get_questions_id_by_test_id(temp_user_data.temp_data(user_id)[user_id][3]))
-                    bot.send_message(user_id, text[0], reply_markup=buttons.answer_btns(quanity, text[1]))
+                    bot.send_message(user_id, text[0], reply_markup=buttons.answer_btns(quanity, text[1]), parse_mode='HTML')
             elif command[:4] == 'test':
                 temp_user_data.temp_data(user_id)[user_id][0] = None
                 quanity, data = db_actions.pre_test_data(command[4:])
                 bot.send_message(user_id, f'{data[1]}',
-                                 reply_markup=buttons.start_test_btn(data[3], command[4:]))
+                                 reply_markup=buttons.start_test_btn(data[3], command[4:]), parse_mode='HTML')
             elif command[:3] == 'end':
                 if temp_user_data.temp_data(user_id)[user_id][0] is not None:
                     data = get_after_test(command[3:], tg_nick, user_id)
@@ -133,11 +133,11 @@ def main():
                     marks = db_actions.get_marks_by_stat(test_name, f'https://t.me/{tg_nick}')
                     data = data.replace('{баллов}', f'{str(marks)} баллов')
                     temp_user_data.temp_data(user_id)[user_id][0] = None
-                    bot.send_message(user_id, data, reply_markup=buttons.start_buttons('Выбрать тест'))
+                    bot.send_message(user_id, data, reply_markup=buttons.start_buttons('Выбрать тест'), parse_mode='HTML')
             elif command[:5] == 'tret':
                 temp_user_data.temp_data(user_id)[user_id][0] = 0
                 data = db_actions.get_all_tests()
-                bot.send_message(user_id, f'Выберите тест:', reply_markup=buttons.first_btns(data))
+                bot.send_message(user_id, f'Выберите тест:', reply_markup=buttons.first_btns(data), parse_mode='HTML')
             elif command[:6] == 'answer' and temp_user_data.temp_data(user_id)[user_id][0] == 1:
                 all_questions = len(temp_user_data.temp_data(user_id)[user_id][1])
                 if all_questions - temp_user_data.temp_data(user_id)[user_id][2] >= 0 and \
@@ -165,12 +165,12 @@ def main():
                                            caption=f'{pre_text}',
                                            reply_markup=buttons.contiue_test_btn(after_quest[2],
                                                                                  temp_user_data.temp_data(user_id)[
-                                                                                     user_id][1][index + 1]))
+                                                                                     user_id][1][index + 1]), parse_mode='HTML')
                         else:
                             bot.send_photo(photo=after_quest[3], chat_id=user_id,
                                            caption=f'{pre_text}',
                                            reply_markup=buttons.end_test_btn(
-                                               temp_user_data.temp_data(user_id)[user_id][3]))
+                                               temp_user_data.temp_data(user_id)[user_id][3]), parse_mode='HTML')
                     else:
                         row = db_actions.add_entry_statistic([current_time, progress, marks], test_name,
                                                              f'https://t.me/{tg_nick}')
@@ -188,13 +188,13 @@ def main():
                             if len(text) == 1:
                                 bot.send_photo(photo=after_quest[4], chat_id=user_id,
                                                    caption=text[i],
-                                                   reply_markup=reply_markup)
+                                                   reply_markup=reply_markup, parse_mode='HTML')
                             elif i == 0:
-                                bot.send_photo(photo=after_quest[4], chat_id=user_id, caption=text[i])
+                                bot.send_photo(photo=after_quest[4], chat_id=user_id, caption=text[i], parse_mode='HTML')
                             elif i+1 == len(text):
-                                bot.send_message(user_id, text[i], reply_markup=reply_markup)
+                                bot.send_message(user_id, text[i], reply_markup=reply_markup, parse_mode='HTML')
                             else:
-                                bot.send_message(user_id, text[i])
+                                bot.send_message(user_id, text[i], parse_mode='HTML')
 
         else:
             bot.send_message(user_id, 'Введите /start для запуска бота')
