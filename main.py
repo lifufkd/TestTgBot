@@ -161,16 +161,30 @@ def main():
                                                              f'https://t.me/{tg_nick}', row)).start()
                         pre_text = after_quest[0].replace('{баллов}', f'{str(marks + 1)} баллов')
                         if all_questions != index + 1:
-                            bot.send_photo(photo=after_quest[3], chat_id=user_id,
-                                           caption=f'{pre_text}',
-                                           reply_markup=buttons.contiue_test_btn(after_quest[2],
-                                                                                 temp_user_data.temp_data(user_id)[
-                                                                                     user_id][1][index + 1]), parse_mode='HTML')
+                            if len(after_quest[3]) != 0:
+                                bot.send_photo(photo=after_quest[3], chat_id=user_id,
+                                               caption=f'{pre_text}',
+                                               reply_markup=buttons.contiue_test_btn(after_quest[2],
+                                                                                     temp_user_data.temp_data(user_id)[
+                                                                                         user_id][1][index + 1]), parse_mode='HTML')
+                            else:
+                                bot.send_message(chat_id=user_id,
+                                               text=f'{pre_text}',
+                                               reply_markup=buttons.contiue_test_btn(after_quest[2],
+                                                                                     temp_user_data.temp_data(user_id)[
+                                                                                         user_id][1][index + 1]),
+                                               parse_mode='HTML')
                         else:
-                            bot.send_photo(photo=after_quest[3], chat_id=user_id,
-                                           caption=f'{pre_text}',
-                                           reply_markup=buttons.end_test_btn(
-                                               temp_user_data.temp_data(user_id)[user_id][3]), parse_mode='HTML')
+                            if len(after_quest[3]) != 0:
+                                bot.send_photo(photo=after_quest[3], chat_id=user_id,
+                                               caption=f'{pre_text}',
+                                               reply_markup=buttons.end_test_btn(
+                                                   temp_user_data.temp_data(user_id)[user_id][3]), parse_mode='HTML')
+                            else:
+                                bot.send_message(chat_id=user_id,
+                                               text=f'{pre_text}',
+                                               reply_markup=buttons.end_test_btn(
+                                                   temp_user_data.temp_data(user_id)[user_id][3]), parse_mode='HTML')
                     else:
                         row = db_actions.add_entry_statistic([current_time, progress, marks], test_name,
                                                              f'https://t.me/{tg_nick}')
@@ -186,11 +200,21 @@ def main():
                             reply_markup = buttons.end_test_btn(temp_user_data.temp_data(user_id)[user_id][3])
                         for i in range(len(text)):
                             if len(text) == 1:
-                                bot.send_photo(photo=after_quest[4], chat_id=user_id,
-                                                   caption=text[i],
+                                if len(after_quest[4]) != 0:
+                                    bot.send_photo(photo=after_quest[4], chat_id=user_id,
+                                                       caption=text[i],
+                                                       reply_markup=reply_markup, parse_mode='HTML')
+                                else:
+                                    bot.send_message(chat_id=user_id,
+                                                   text=text[i],
                                                    reply_markup=reply_markup, parse_mode='HTML')
                             elif i == 0:
-                                bot.send_photo(photo=after_quest[4], chat_id=user_id, caption=text[i], parse_mode='HTML')
+                                if len(after_quest[4]) != 0:
+                                    bot.send_photo(photo=after_quest[4], chat_id=user_id, caption=text[i], parse_mode='HTML')
+                                else:
+                                    bot.send_message(chat_id=user_id,
+                                                     text=text[i],
+                                                     reply_markup=reply_markup, parse_mode='HTML')
                             elif i+1 == len(text):
                                 bot.send_message(user_id, text[i], reply_markup=reply_markup, parse_mode='HTML')
                             else:

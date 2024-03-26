@@ -57,7 +57,7 @@ class Excell:
             if chunk:
                 out += chunk
         if out[:5] == b'<html':
-            out = open('no-photo.png', 'rb').read()
+            out = b''
         return out
 
     def get_confirm_token(self, response):
@@ -127,8 +127,11 @@ class DbAct:
 
     def update_config(self, data):
         index = list()
+        data_index = list()
         for i in self.__db.db_read(f'SELECT row_id FROM tests', ()):
             index.append(str(i[0]))
+        for i in data:
+            data_index.append(i[0])
         for i in data:
             correct_link = self.__sheet.download_file_from_google_drive(i[7][32:65])
             incorrect_link = self.__sheet.download_file_from_google_drive(i[8][32:65])
@@ -144,14 +147,20 @@ class DbAct:
                     f'after_question_c, after_test, after_question_i, correct_link, incorrect_link, questions, test_command, row_width) '
                     f'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                     (i[0], i[1], i[2], i[4], i[11], i[6], i[9], i[12], i[10], correct_link, incorrect_link, i[5], i[3], i[13]))
+        for i in index:
+            if i not in data_index:
+                self.__db.db_write(f'DELETE FROM tests WHERE row_id = ?', (i, ))
 
     def update_questions(self):
         index = list()
+        data_index = list()
         for i in self.__db.db_read(f'SELECT row_id, id_test FROM questions', ()):
             index.append(i)
         quanity, names = self.__sheet.get_names_lists()
         for g in range(quanity):
             data = self.__sheet.questions_excell(g+2)
+            for i in data:
+                data_index.append((i[0], names[g+2].title))
             for i in data:
                 enc_answers = json.dumps(i[4:])
                 if (i[0], names[g+2].title) in index:
@@ -162,6 +171,11 @@ class DbAct:
                     self.__db.db_write(
                         f'INSERT INTO questions (row_id, name, questions, answer_description, correct, id_test) VALUES (?, ?, ?, ?, ?, ?)',
                         (i[0], i[1], enc_answers, i[2], i[3], names[g+2].title))
+        for i in index:
+            if i not in data_index:
+                print(i)
+                print(data_index)
+                self.__db.db_write(f'DELETE FROM questions WHERE row_id = ? AND id_test = ?', i)
 
     def get_all_tests(self):
         data = self.__db.db_read('SELECT row_id, name FROM tests', ())
