@@ -131,7 +131,7 @@ def main():
                     data = get_after_test(command[3:], tg_nick, user_id)
                     test_name = db_actions.get_test_name_by_id(temp_user_data.temp_data(user_id)[user_id][3])
                     marks = db_actions.get_marks_by_stat(test_name, f'https://t.me/{tg_nick}')
-                    data = data.replace('{баллов}', f'{str(marks)} баллов')
+                    data = data.replace('{баллов}', f'{str(marks)}')
                     temp_user_data.temp_data(user_id)[user_id][0] = None
                     bot.send_message(user_id, data, reply_markup=buttons.start_buttons('Выбрать тест'), parse_mode='HTML')
             elif command[:5] == 'tret':
@@ -159,7 +159,7 @@ def main():
                                                              f'https://t.me/{tg_nick}')
                         threading.Thread(target=db_actions.add_entry_statistic_excel([current_time, progress, marks + 1], test_name,
                                                              f'https://t.me/{tg_nick}', row)).start()
-                        pre_text = after_quest[0].replace('{баллов}', f'{str(marks + 1)} баллов')
+                        pre_text = after_quest[0].replace('{баллов}', f'{str(marks + 1)}')
                         if all_questions != index + 1:
                             if len(after_quest[3]) != 0:
                                 bot.send_photo(photo=after_quest[3], chat_id=user_id,
@@ -191,7 +191,7 @@ def main():
                         threading.Thread(
                             target=db_actions.add_entry_statistic_excel([current_time, progress, marks], test_name,
                                                                         f'https://t.me/{tg_nick}', row)).start()
-                        pre_text = after_quest[1].replace('{баллов}', f'{str(marks)} баллов')
+                        pre_text = after_quest[1].replace('{баллов}', f'{str(marks)}')
                         text = split_text(f'{pre_text}\n\n{solve}')
                         if all_questions != index + 1:
                             reply_markup = buttons.contiue_test_btn(after_quest[2], temp_user_data.temp_data(user_id)[
