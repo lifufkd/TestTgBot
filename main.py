@@ -213,8 +213,7 @@ def main():
                                     bot.send_photo(photo=after_quest[4], chat_id=user_id, caption=text[i], parse_mode='HTML')
                                 else:
                                     bot.send_message(chat_id=user_id,
-                                                     text=text[i],
-                                                     reply_markup=reply_markup, parse_mode='HTML')
+                                                     text=text[i], parse_mode='HTML')
                             elif i+1 == len(text):
                                 bot.send_message(user_id, text[i], reply_markup=reply_markup, parse_mode='HTML')
                             else:
