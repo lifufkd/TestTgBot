@@ -17,7 +17,7 @@ class TempUserData:
 
     def temp_data(self, user_id):
         if user_id not in self.__user_data.keys():
-            self.__user_data.update({user_id: [None, [], None, None, None]}) # 1 - status, 2 - m
+            self.__user_data.update({user_id: [None, [], None, None, None, [], [], False]}) # 1 - status, 2 - m
         return self.__user_data
 
 
@@ -139,14 +139,16 @@ class DbAct:
                 self.__db.db_write(
                     f'UPDATE tests SET name = ?, description = ?, text_start_btn = ?, text_continue_btn = ?, '
                     f'before_test = ?, after_question_c = ?, after_test = ?, after_question_i = ?, correct_link = ?, '
-                    f'incorrect_link = ?, questions = ?, test_command = ?, row_width = ? WHERE row_id = {i[0]}',
-                    (i[1], i[2], i[4], i[11], i[6], i[9], i[12], i[10], correct_link, incorrect_link, i[5], i[3], i[13]))
+                    f'incorrect_link = ?, questions = ?, test_command = ?, row_width = ?, start_question = ?, start_answer = ?, '
+                    f'again_test_btn = ?, new_test_btn = ? WHERE row_id = {i[0]}',
+                    (i[1], i[2], i[4], i[11], i[6], i[9], i[12], i[10], correct_link, incorrect_link, i[5], i[3], i[13], i[14], i[15], i[16], i[17]))
             else:
                 self.__db.db_write(
                     f'INSERT INTO tests (row_id, name, description, text_start_btn, text_continue_btn, before_test, '
-                    f'after_question_c, after_test, after_question_i, correct_link, incorrect_link, questions, test_command, row_width) '
-                    f'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                    (i[0], i[1], i[2], i[4], i[11], i[6], i[9], i[12], i[10], correct_link, incorrect_link, i[5], i[3], i[13]))
+                    f'after_question_c, after_test, after_question_i, correct_link, incorrect_link, questions, test_command, '
+                    f'row_width, start_question, start_answer, again_test_btn, new_test_btn) '
+                    f'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    (i[0], i[1], i[2], i[4], i[11], i[6], i[9], i[12], i[10], correct_link, incorrect_link, i[5], i[3], i[13], i[14], i[15], i[16], i[17]))
         for i in index:
             if i not in data_index:
                 self.__db.db_write(f'DELETE FROM tests WHERE row_id = ?', (i, ))
@@ -181,6 +183,11 @@ class DbAct:
         data = self.__db.db_read('SELECT row_id, name FROM tests', ())
         return data
 
+    def get_start_question(self, id_test):
+        return self.__db.db_read('SELECT start_question FROM tests WHERE row_id = ?',
+                                    (id_test, ))[0][0]
+
+
 
     def pre_test_data(self, test_id):
         data = self.__db.db_read('SELECT name, before_test, description, text_start_btn, questions FROM tests WHERE row_id = ?', (test_id, ))
@@ -210,12 +217,15 @@ class DbAct:
         return quanity[:2], quests
 
     def get_after_quest(self, id_test, id_quest):
-        test = self.__db.db_read('SELECT after_question_c, after_question_i, text_continue_btn, correct_link, incorrect_link, questions FROM tests WHERE row_id = ?', (id_test,))[0]
-        quest = self.__db.db_read('SELECT answer_description FROM questions WHERE row_id = ? AND id_test = ?', (id_quest, test[5]))[0][0]
-        return test[:5], quest
+        test = self.__db.db_read('SELECT after_question_c, after_question_i, text_continue_btn, correct_link, incorrect_link, start_answer, questions FROM tests WHERE row_id = ?', (id_test,))[0]
+        quest = self.__db.db_read('SELECT answer_description FROM questions WHERE row_id = ? AND id_test = ?', (id_quest, test[6]))[0][0]
+        return test[:6], quest
 
     def get_questions_id_by_test_id(self, test_id):
         return self.__db.db_read('SELECT questions FROM tests WHERE row_id = ?', (test_id,))[0][0]
+
+    def get_questions_end_btn(self, test_id):
+        return self.__db.db_read('SELECT new_test_btn, again_test_btn FROM tests WHERE row_id = ?', (test_id,))[0]
 
     def get_test_name_by_id(self, test_id):
         data = self.__db.db_read('SELECT name FROM tests WHERE row_id = ?', (test_id, ))[0][0]

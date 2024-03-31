@@ -46,7 +46,11 @@ class DB:
             correct_link BLOB,
             incorrect_link BLOB,
             row_width TEXT,
-            questions TEXT
+            questions TEXT,
+            start_question TEXT,
+            start_answer TEXT,
+            again_test_btn TEXT,
+            new_test_btn TEXT
             )
             ''')
             self.__cursor.execute('''

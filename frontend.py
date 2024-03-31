@@ -21,7 +21,7 @@ class Bot_inline_btns:
 
     def start_buttons(self, text):
         keyboard = types.InlineKeyboardMarkup(row_width=1)
-        product_catalog = types.InlineKeyboardButton(f'🗂 {text}', callback_data='tret')
+        product_catalog = types.InlineKeyboardButton(f'{text}', callback_data='tret')
         keyboard.add(product_catalog)
         return keyboard
 
@@ -37,10 +37,15 @@ class Bot_inline_btns:
         markup.add(btn)
         return markup
 
-    def end_test_btn(self, test_id):
+    def end_test_btn(self, test_id, text_end, text_again, stat):
         markup = types.InlineKeyboardMarkup(row_width=1)
-        btn = types.InlineKeyboardButton('Итоги теста', callback_data=f'end{test_id}')
-        markup.add(btn)
+        if stat:
+            btn = types.InlineKeyboardButton(text_again, callback_data=f'again{test_id}')
+            btn1 = types.InlineKeyboardButton('Завершить тест', callback_data=f'end{test_id}')
+            markup.add(btn, btn1)
+        else:
+            btn1 = types.InlineKeyboardButton('Завершить тест', callback_data=f'end{test_id}')
+            markup.add(btn1)
         return markup
 
     def admin_btns(self):
