@@ -123,6 +123,9 @@ def main():
                     temp_user_data.temp_data(user_id)[user_id][3] = command[10:]
                     temp_user_data.temp_data(user_id)[user_id][4] = True
                     temp_user_data.temp_data(user_id)[user_id][8] = 0
+                    temp_user_data.temp_data(user_id)[user_id][5] = copy.deepcopy([])
+                    temp_user_data.temp_data(user_id)[user_id][6] = copy.deepcopy([])
+                    temp_user_data.temp_data(user_id)[user_id][7] = False
                     text, quanity = get_question(temp_user_data.temp_data(user_id)[user_id][1][0], db_actions.get_questions_id_by_test_id(command[10:]), command[10:], user_id)
                     bot.send_message(user_id, text[0], reply_markup=buttons.answer_btns(quanity, text[1]), parse_mode='HTML')
             elif command[:8] == 'continue':
@@ -148,12 +151,12 @@ def main():
                     test_name = db_actions.get_test_name_by_id(temp_user_data.temp_data(user_id)[user_id][3])
                     marks = db_actions.get_marks_by_stat(test_name, f'https://t.me/{tg_nick}')
                     data = data.replace('{баллов}', f'{str(marks)}')
-                    temp_user_data.temp_data(user_id)[user_id][0] = None
-                    temp_user_data.temp_data(user_id)[user_id][5] = copy.deepcopy([])
-                    temp_user_data.temp_data(user_id)[user_id][6] = copy.deepcopy([])
-                    temp_user_data.temp_data(user_id)[user_id][7] = False
+                    if len(temp_user_data.temp_data(user_id)[user_id][5]) == 0:
+                        stat = False
+                    else:
+                        stat = True
                     end_text = db_actions.get_questions_end_btn(temp_user_data.temp_data(user_id)[user_id][3])
-                    bot.send_message(user_id, data, reply_markup=buttons.start_buttons(end_text[0]), parse_mode='HTML')
+                    bot.send_message(user_id, data, reply_markup=buttons.start_buttons(end_text[0], stat, end_text[1], temp_user_data.temp_data(user_id)[user_id][3]), parse_mode='HTML')
             elif command[:5] == 'tret':
                 temp_user_data.temp_data(user_id)[user_id][0] = 0
                 data = db_actions.get_all_tests()
@@ -165,8 +168,6 @@ def main():
                     temp_user_data.temp_data(user_id)[user_id][4] = True
                     temp_user_data.temp_data(user_id)[user_id][7] = True
                     temp_user_data.temp_data(user_id)[user_id][8] = 0
-                    print(temp_user_data.temp_data(user_id)[user_id][5])
-                    print(temp_user_data.temp_data(user_id)[user_id][6])
                     text, quanity = get_question(temp_user_data.temp_data(user_id)[user_id][1][0],
                                                  db_actions.get_questions_id_by_test_id(temp_user_data.temp_data(user_id)[user_id][3]),
                                                  temp_user_data.temp_data(user_id)[user_id][3], user_id, 0)
@@ -204,7 +205,7 @@ def main():
                                                              f'https://t.me/{tg_nick}')
                         threading.Thread(target=db_actions.add_entry_statistic_excel, args=([current_time, progress, marks + 1], test_name,
                                                              f'https://t.me/{tg_nick}', row)).start()
-                        data = after_quest[5] + after_quest[0]
+                        data = f'{after_quest[0]}\n'
                         pre_text = data.replace('{баллов}', f'{str(marks + 1)}')
                         pre_text = pre_text.replace('{Вопрос}', f'{str(question_number)}')
                         end_text = db_actions.get_questions_end_btn(temp_user_data.temp_data(user_id)[user_id][3])
@@ -250,14 +251,14 @@ def main():
                             temp_user_data.temp_data(user_id)[user_id][5].append(temp_user_data.temp_data(user_id)[user_id][1][index])
                         if temp_user_data.temp_data(user_id)[user_id][2] not in temp_user_data.temp_data(user_id)[user_id][6]:
                             temp_user_data.temp_data(user_id)[user_id][6].append(temp_user_data.temp_data(user_id)[user_id][2])
-                        data = after_quest[5] + after_quest[1]
+                        data = f'{after_quest[1]}\n\n{after_quest[5]}'
                         pre_text = data.replace('{баллов}', f'{str(marks + 1)}')
                         if not temp_user_data.temp_data(user_id)[user_id][7]:
                             pre_text = pre_text.replace('{Вопрос}', f'{str(question_number)}')
                         else:
                             pre_text = pre_text.replace('{Вопрос}', f'{str(question_number)}')
                         end_text = db_actions.get_questions_end_btn(temp_user_data.temp_data(user_id)[user_id][3])
-                        text = split_text(f'{pre_text}\n\n{solve}')
+                        text = split_text(f'{pre_text} {solve}')
                         if all_questions != index + 1:
                             reply_markup = buttons.contiue_test_btn(after_quest[2], temp_user_data.temp_data(user_id)[
                                                                           user_id][1][index + 1])
