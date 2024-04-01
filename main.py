@@ -37,10 +37,7 @@ def get_question(test_id, quest_id, test_id_select, user_id, index=0):
 
 def get_number_question(user_id, index=0):
     if temp_user_data.temp_data(user_id)[user_id][7]:
-        print(temp_user_data.temp_data(user_id)[user_id][5], '1')
-        print(temp_user_data.temp_data(user_id)[user_id][6], '1')
-        print(index)
-        return temp_user_data.temp_data(user_id)[user_id][6][index]
+        return temp_user_data.temp_data(user_id)[user_id][6][index-temp_user_data.temp_data(user_id)[user_id][8]]
     else:
         return temp_user_data.temp_data(user_id)[user_id][2] + 1
 
@@ -125,6 +122,7 @@ def main():
                     temp_user_data.temp_data(user_id)[user_id][2] = 0  # пройденных вопросов
                     temp_user_data.temp_data(user_id)[user_id][3] = command[10:]
                     temp_user_data.temp_data(user_id)[user_id][4] = True
+                    temp_user_data.temp_data(user_id)[user_id][8] = 0
                     text, quanity = get_question(temp_user_data.temp_data(user_id)[user_id][1][0], db_actions.get_questions_id_by_test_id(command[10:]), command[10:], user_id)
                     bot.send_message(user_id, text[0], reply_markup=buttons.answer_btns(quanity, text[1]), parse_mode='HTML')
             elif command[:8] == 'continue':
@@ -166,6 +164,7 @@ def main():
                     temp_user_data.temp_data(user_id)[user_id][2] = 0  # пройденных вопросов
                     temp_user_data.temp_data(user_id)[user_id][4] = True
                     temp_user_data.temp_data(user_id)[user_id][7] = True
+                    temp_user_data.temp_data(user_id)[user_id][8] = 0
                     print(temp_user_data.temp_data(user_id)[user_id][5])
                     print(temp_user_data.temp_data(user_id)[user_id][6])
                     text, quanity = get_question(temp_user_data.temp_data(user_id)[user_id][1][0],
@@ -190,8 +189,13 @@ def main():
                         marks = 0
                     temp_user_data.temp_data(user_id)[user_id][4] = False
                     if db_actions.check_correct(temp_user_data.temp_data(user_id)[user_id][1][index], command[6:], temp_user_data.temp_data(user_id)[user_id][3]):
+                        question_number = get_number_question(user_id, index)
+                        if not temp_user_data.temp_data(user_id)[user_id][7]:
+                            question_number -= 1
                         if temp_user_data.temp_data(user_id)[user_id][7]:
                             temp_user_data.temp_data(user_id)[user_id][5].remove(temp_user_data.temp_data(user_id)[user_id][1][index])
+                            temp_user_data.temp_data(user_id)[user_id][6].remove(question_number)
+                            temp_user_data.temp_data(user_id)[user_id][8] += 1
                         if len(temp_user_data.temp_data(user_id)[user_id][5]) == 0:
                             stat = False
                         else:
@@ -202,10 +206,7 @@ def main():
                                                              f'https://t.me/{tg_nick}', row)).start()
                         data = after_quest[5] + after_quest[0]
                         pre_text = data.replace('{баллов}', f'{str(marks + 1)}')
-                        if not temp_user_data.temp_data(user_id)[user_id][7]:
-                            pre_text = pre_text.replace('{Вопрос}', f'{str(get_number_question(user_id, index)-1)}')
-                        else:
-                            pre_text = pre_text.replace('{Вопрос}', f'{str(get_number_question(user_id, index))}')
+                        pre_text = pre_text.replace('{Вопрос}', f'{str(question_number)}')
                         end_text = db_actions.get_questions_end_btn(temp_user_data.temp_data(user_id)[user_id][3])
                         if all_questions != index + 1:
                             if len(after_quest[3]) != 0:
@@ -238,6 +239,9 @@ def main():
                         threading.Thread(
                             target=db_actions.add_entry_statistic_excel, args=([current_time, progress, marks], test_name,
                                                                         f'https://t.me/{tg_nick}', row)).start()
+                        question_number = get_number_question(user_id, index)
+                        if not temp_user_data.temp_data(user_id)[user_id][7]:
+                            question_number -= 1
                         if len(temp_user_data.temp_data(user_id)[user_id][5]) == 0:
                             stat = False
                         else:
@@ -249,9 +253,9 @@ def main():
                         data = after_quest[5] + after_quest[1]
                         pre_text = data.replace('{баллов}', f'{str(marks + 1)}')
                         if not temp_user_data.temp_data(user_id)[user_id][7]:
-                            pre_text = pre_text.replace('{Вопрос}', f'{str(get_number_question(user_id, index) - 1)}')
+                            pre_text = pre_text.replace('{Вопрос}', f'{str(question_number)}')
                         else:
-                            pre_text = pre_text.replace('{Вопрос}', f'{str(get_number_question(user_id, index))}')
+                            pre_text = pre_text.replace('{Вопрос}', f'{str(question_number)}')
                         end_text = db_actions.get_questions_end_btn(temp_user_data.temp_data(user_id)[user_id][3])
                         text = split_text(f'{pre_text}\n\n{solve}')
                         if all_questions != index + 1:
