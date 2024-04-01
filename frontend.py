@@ -42,12 +42,6 @@ class Bot_inline_btns:
         markup.add(btn)
         return markup
 
-    def end_test_btn(self, test_id, text_end, text_again, stat):
-        markup = types.InlineKeyboardMarkup(row_width=1)
-        btn1 = types.InlineKeyboardButton('Завершить тест', callback_data=f'end{test_id}')
-        markup.add(btn1)
-        return markup
-
     def admin_btns(self):
         btn = types.InlineKeyboardButton('синхронизировать', callback_data=f'sync')
         self.__markup.add(btn)

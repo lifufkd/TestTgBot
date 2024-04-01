@@ -35,6 +35,22 @@ def get_question(test_id, quest_id, test_id_select, user_id, index=0):
     return out, questions
 
 
+def end_test(user_id, command, tg_nick, buttons):
+    if temp_user_data.temp_data(user_id)[user_id][0] is not None:
+        data = get_after_test(command, tg_nick, user_id)
+        test_name = db_actions.get_test_name_by_id(temp_user_data.temp_data(user_id)[user_id][3])
+        marks = db_actions.get_marks_by_stat(test_name, f'https://t.me/{tg_nick}')
+        data = data.replace('{баллов}', f'{str(marks)}')
+        if len(temp_user_data.temp_data(user_id)[user_id][5]) == 0:
+            stat = False
+        else:
+            stat = True
+        end_text = db_actions.get_questions_end_btn(temp_user_data.temp_data(user_id)[user_id][3])
+        bot.send_message(user_id, data, reply_markup=buttons.start_buttons(end_text[0], stat, end_text[1],
+                                                                           temp_user_data.temp_data(user_id)[user_id][
+                                                                               3]), parse_mode='HTML')
+
+
 def get_number_question(user_id, index=0):
     if temp_user_data.temp_data(user_id)[user_id][7]:
         return temp_user_data.temp_data(user_id)[user_id][6][index-temp_user_data.temp_data(user_id)[user_id][8]]
@@ -145,18 +161,6 @@ def main():
                 quanity, data = db_actions.pre_test_data(command[4:])
                 bot.send_message(user_id, f'{data[1]}',
                                  reply_markup=buttons.start_test_btn(data[3], command[4:]), parse_mode='HTML')
-            elif command[:3] == 'end':
-                if temp_user_data.temp_data(user_id)[user_id][0] is not None:
-                    data = get_after_test(command[3:], tg_nick, user_id)
-                    test_name = db_actions.get_test_name_by_id(temp_user_data.temp_data(user_id)[user_id][3])
-                    marks = db_actions.get_marks_by_stat(test_name, f'https://t.me/{tg_nick}')
-                    data = data.replace('{баллов}', f'{str(marks)}')
-                    if len(temp_user_data.temp_data(user_id)[user_id][5]) == 0:
-                        stat = False
-                    else:
-                        stat = True
-                    end_text = db_actions.get_questions_end_btn(temp_user_data.temp_data(user_id)[user_id][3])
-                    bot.send_message(user_id, data, reply_markup=buttons.start_buttons(end_text[0], stat, end_text[1], temp_user_data.temp_data(user_id)[user_id][3]), parse_mode='HTML')
             elif command[:5] == 'tret':
                 temp_user_data.temp_data(user_id)[user_id][0] = 0
                 data = db_actions.get_all_tests()
@@ -208,7 +212,6 @@ def main():
                         data = f'{after_quest[0]}\n'
                         pre_text = data.replace('{баллов}', f'{str(marks + 1)}')
                         pre_text = pre_text.replace('{Вопрос}', f'{str(question_number)}')
-                        end_text = db_actions.get_questions_end_btn(temp_user_data.temp_data(user_id)[user_id][3])
                         if all_questions != index + 1:
                             if len(after_quest[3]) != 0:
                                 bot.send_photo(photo=after_quest[3], chat_id=user_id,
@@ -227,13 +230,12 @@ def main():
                             if len(after_quest[3]) != 0:
                                 bot.send_photo(photo=after_quest[3], chat_id=user_id,
                                                caption=f'{pre_text}',
-                                               reply_markup=buttons.end_test_btn(
-                                                   temp_user_data.temp_data(user_id)[user_id][3], end_text[0], end_text[1], stat), parse_mode='HTML')
+                                               parse_mode='HTML')
                             else:
                                 bot.send_message(chat_id=user_id,
                                                text=f'{pre_text}',
-                                               reply_markup=buttons.end_test_btn(
-                                                   temp_user_data.temp_data(user_id)[user_id][3], end_text[0], end_text[1], stat), parse_mode='HTML')
+                                               parse_mode='HTML')
+                            end_test(user_id, temp_user_data.temp_data(user_id)[user_id][3], tg_nick, buttons)
                     else:
                         row = db_actions.add_entry_statistic([current_time, progress, marks], test_name,
                                                              f'https://t.me/{tg_nick}')
@@ -257,33 +259,54 @@ def main():
                             pre_text = pre_text.replace('{Вопрос}', f'{str(question_number)}')
                         else:
                             pre_text = pre_text.replace('{Вопрос}', f'{str(question_number)}')
-                        end_text = db_actions.get_questions_end_btn(temp_user_data.temp_data(user_id)[user_id][3])
                         text = split_text(f'{pre_text} {solve}')
                         if all_questions != index + 1:
                             reply_markup = buttons.contiue_test_btn(after_quest[2], temp_user_data.temp_data(user_id)[
                                                                           user_id][1][index + 1])
-                        else:
-                            reply_markup = buttons.end_test_btn(temp_user_data.temp_data(user_id)[user_id][3], end_text[0], end_text[1], stat)
-                        for i in range(len(text)):
-                            if len(text) == 1:
-                                if len(after_quest[4]) != 0:
-                                    bot.send_photo(photo=after_quest[4], chat_id=user_id,
+                            for i in range(len(text)):
+                                if len(text) == 1:
+                                    if len(after_quest[4]) != 0:
+                                        bot.send_photo(photo=after_quest[4], chat_id=user_id,
                                                        caption=text[i],
                                                        reply_markup=reply_markup, parse_mode='HTML')
+                                    else:
+                                        bot.send_message(chat_id=user_id,
+                                                         text=text[i],
+                                                         reply_markup=reply_markup, parse_mode='HTML')
+                                elif i == 0:
+                                    if len(after_quest[4]) != 0:
+                                        bot.send_photo(photo=after_quest[4], chat_id=user_id, caption=text[i],
+                                                       parse_mode='HTML')
+                                    else:
+                                        bot.send_message(chat_id=user_id,
+                                                         text=text[i], parse_mode='HTML')
+                                elif i + 1 == len(text):
+                                    bot.send_message(user_id, text[i], reply_markup=reply_markup, parse_mode='HTML')
                                 else:
-                                    bot.send_message(chat_id=user_id,
-                                                   text=text[i],
-                                                   reply_markup=reply_markup, parse_mode='HTML')
-                            elif i == 0:
-                                if len(after_quest[4]) != 0:
-                                    bot.send_photo(photo=after_quest[4], chat_id=user_id, caption=text[i], parse_mode='HTML')
+                                    bot.send_message(user_id, text[i], parse_mode='HTML')
+                        else:
+                            for i in range(len(text)):
+                                if len(text) == 1:
+                                    if len(after_quest[4]) != 0:
+                                        bot.send_photo(photo=after_quest[4], chat_id=user_id,
+                                                       caption=text[i],
+                                                        parse_mode='HTML')
+                                    else:
+                                        bot.send_message(chat_id=user_id,
+                                                         text=text[i],
+                                                          parse_mode='HTML')
+                                elif i == 0:
+                                    if len(after_quest[4]) != 0:
+                                        bot.send_photo(photo=after_quest[4], chat_id=user_id, caption=text[i],
+                                                       parse_mode='HTML')
+                                    else:
+                                        bot.send_message(chat_id=user_id,
+                                                         text=text[i], parse_mode='HTML')
+                                elif i + 1 == len(text):
+                                    bot.send_message(user_id, text[i], parse_mode='HTML')
                                 else:
-                                    bot.send_message(chat_id=user_id,
-                                                     text=text[i], parse_mode='HTML')
-                            elif i+1 == len(text):
-                                bot.send_message(user_id, text[i], reply_markup=reply_markup, parse_mode='HTML')
-                            else:
-                                bot.send_message(user_id, text[i], parse_mode='HTML')
+                                    bot.send_message(user_id, text[i], parse_mode='HTML')
+                            end_test(user_id, temp_user_data.temp_data(user_id)[user_id][3], tg_nick, buttons)
 
         else:
             bot.send_message(user_id, 'Введите /start для запуска бота')
