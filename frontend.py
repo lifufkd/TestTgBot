@@ -44,7 +44,10 @@ class Bot_inline_btns:
 
     def admin_btns(self):
         btn = types.InlineKeyboardButton('синхронизировать', callback_data=f'sync')
-        self.__markup.add(btn)
+        btn1 = types.InlineKeyboardButton('добавить админа', callback_data=f'addadmin')
+        btn2 = types.InlineKeyboardButton('удалить админа', callback_data=f'deladmin')
+        btn3 = types.InlineKeyboardButton('изменить гугл файл', callback_data=f'changegoogle')
+        self.__markup.add(btn, btn1, btn2, btn3)
         return self.__markup
 
     def answer_btns(self, quanity, qe):

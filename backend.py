@@ -224,6 +224,35 @@ class DbAct:
     def get_questions_id_by_test_id(self, test_id):
         return self.__db.db_read('SELECT questions FROM tests WHERE row_id = ?', (test_id,))[0][0]
 
+    def check_is_admin(self, nick_name):
+        data = self.__db.db_read('SELECT is_admin FROM users WHERE nick_name = ?', (f'@{nick_name}', ))
+        print(data)
+        if len(data) == 0:
+            return 0
+        elif data[0][0] == 1:
+            return 1
+        elif data[0][0] == 0:
+            return 2
+
+    def modify_admin(self, nick_name, status):
+        data = self.check_is_admin(nick_name)
+        if status:
+            if data == 2:
+                self.__db.db_write('UPDATE users SET is_admin = ? WHERE nick_name = ?', (status, f'@{nick_name}'))
+                return 2
+            elif data == 1:
+                return 1
+            elif data == 0:
+                return 0
+        else:
+            if data == 2:
+                return 1
+            elif data == 1:
+                self.__db.db_write('UPDATE users SET is_admin = ? WHERE nick_name = ?', (status, f'@{nick_name}'))
+                return 2
+            elif data == 0:
+                return 0
+
     def get_questions_end_btn(self, test_id):
         return self.__db.db_read('SELECT new_test_btn, again_test_btn FROM tests WHERE row_id = ?', (test_id,))[0]
 

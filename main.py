@@ -118,6 +118,51 @@ def main():
         else:
             bot.send_message(message.chat.id, 'Введите /start для запуска бота', parse_mode='HTML')
 
+    @bot.message_handler(content_types=['text', 'photo'])
+    def text_message(message):
+        global sheet
+        photo = message.photo
+        user_input = message.text
+        user_id = message.chat.id
+        buttons = Bot_inline_btns()
+        if db_actions.user_is_existed(user_id):
+            if db_actions.user_is_admin(user_id):
+                code = temp_user_data.temp_data(user_id)[user_id][0]
+                match code:
+                    case 2:
+                        if user_input is not None:
+                            data = db_actions.modify_admin(user_input, True)
+                            if data == 0:
+                                bot.send_message(user_id, 'Пользователь не существует, попробуйте ещё раз!')
+                            elif data == 1:
+                                bot.send_message(user_id, 'Пользователь уже администратор, попробуйте ещё раз!')
+                            elif data == 2:
+                                temp_user_data.temp_data(user_id)[user_id][0] = None
+                                bot.send_message(user_id, 'Операция успешно завершена')
+                        else:
+                            bot.send_message(user_id, 'Это не текст! Повторите попытку')
+                    case 3:
+                        if user_input is not None:
+                            data = db_actions.modify_admin(user_input, False)
+                            if data == 0:
+                                bot.send_message(user_id, 'Пользователь не существует, попробуйте ещё раз!')
+                            elif data == 1:
+                                bot.send_message(user_id, 'Пользователь уже администратор, попробуйте ещё раз!')
+                            elif data == 2:
+                                temp_user_data.temp_data(user_id)[user_id][0] = None
+                                bot.send_message(user_id, 'Операция успешно завершена')
+                        else:
+                            bot.send_message(user_id, 'Это не текст! Повторите попытку')
+                    case 4:
+                        if user_input is not None:
+                            config.update_google(user_input)
+                            del sheet
+                            sheet = Excell(db, config)
+                            temp_user_data.temp_data(user_id)[user_id][0] = None
+                            bot.send_message(user_id, 'Операция успешно завершена')
+                        else:
+                            bot.send_message(user_id, 'Это не текст! Повторите попытку')
+
     @bot.callback_query_handler(func=lambda call: True)
     def callback(call):
         command = call.data
@@ -130,6 +175,18 @@ def main():
                     db_actions.update_config(sheet.config_excell())
                     db_actions.update_questions()
                     bot.send_message(user_id, 'Все тесты успешно загружены', parse_mode='HTML')
+                elif command == 'addadmin':
+                    temp_user_data.temp_data(user_id)[user_id][0] = 2
+                    bot.send_message(user_id, 'Введите юзернейм пользователя без @')
+                elif command == 'deladmin':
+                    temp_user_data.temp_data(user_id)[user_id][0] = 3
+                    bot.send_message(user_id, 'Введите юзернейм пользователя без @')
+                elif command == 'changegoogle':
+                    temp_user_data.temp_data(user_id)[user_id][0] = 4
+                    bot.send_message(user_id, f"Текущий ID документа: {config.get_config()['google_table_id']}\n"
+                                              f"Введите новый ID google таблицы (ID google таблицы - "
+                                              f"https://docs.google.com/spreadsheets/d/  <b>1ndNbU5OYrg-fcgP8RXcuFp6kiV-CB"
+                                              f"Cr_a9oNbx60GnI</b>)", parse_mode='HTML')
             if command[:10] == 'start_test':
                 if temp_user_data.temp_data(user_id)[user_id][0] is None:
                     temp_user_data.temp_data(user_id)[user_id][1] = db_actions.get_id_quest_by_master(
@@ -294,7 +351,7 @@ def main():
                                     else:
                                         bot.send_message(chat_id=user_id,
                                                          text=text[i],
-                                                          parse_mode='HTML')
+                                                         parse_mode='HTML')
                                 elif i == 0:
                                     if len(after_quest[4]) != 0:
                                         bot.send_photo(photo=after_quest[4], chat_id=user_id, caption=text[i],

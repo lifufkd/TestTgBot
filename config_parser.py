@@ -36,3 +36,7 @@ class ConfigParser:
 
     def get_config(self):
         return self.__current_config
+
+    def update_google(self, new_path):
+        self.__current_config['google_table_id'] = new_path
+        self.create_conf(self.__current_config)
